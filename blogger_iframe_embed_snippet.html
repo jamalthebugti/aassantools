@@ -1,0 +1,23 @@
+<!--
+  PASTE THIS INTO THE BLOGGER PAGE'S HTML VIEW — nothing else.
+  Replace ONLY the src URL with the tool's real GitHub Pages URL.
+  This is the ENTIRE content of the page — Blogger never touches
+  the tool's actual code, so there's nothing for it to strip or break.
+-->
+<iframe
+  id="aasanToolFrame"
+  src="https://YOUR-GITHUB-USERNAME.github.io/aassan-tools/sale-report.html"
+  style="width:100%;border:none;display:block;min-height:600px;"
+  scrolling="no">
+</iframe>
+
+<script>
+  // Auto-resizes the iframe to fit the tool's actual content height,
+  // so it never shows its own scrollbar or leaves empty white space.
+  window.addEventListener('message', function(event){
+    if(event.data && typeof event.data.aasanToolHeight === 'number'){
+      var frame = document.getElementById('aasanToolFrame');
+      if(frame) frame.style.height = event.data.aasanToolHeight + 'px';
+    }
+  });
+</script>

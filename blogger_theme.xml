@@ -1,0 +1,560 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:version='2' class='v2' expr:dir='data:blog.languageDirection' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+<meta charset='UTF-8'/>
+<meta content='width=device-width, initial-scale=1' name='viewport'/>
+<title><data:blog.pageTitle/></title>
+<b:if cond='data:blog.metaDescription'>
+<meta expr:content='data:blog.metaDescription' name='description'/>
+</b:if>
+<link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap' rel='stylesheet'/>
+<b:skin><![CDATA[
+:root{
+  --paper:#f6f4ee;
+  --paper-soft:#fbfaf6;
+  --ink:#1c2b22;
+  --ink-soft:#5a5a4f;
+  --green:#1f3a29;
+  --green-mid:#2b4a34;
+  --green-light:#3f6b4a;
+  --gold:#c8912b;
+  --gold-soft:#e6c068;
+  --accent:#b3541e;
+  --line:#dbd5c2;
+  --card:#ffffff;
+  --shadow:0 10px 30px rgba(28,43,34,.08);
+  --shadow-lg:0 20px 50px rgba(28,43,34,.14);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit; text-decoration:none;}
+img{max-width:100%;}
+.container{max-width:1120px; margin:0 auto; padding:0 24px;}
+
+/* ---------- Header ---------- */
+.site-header{
+  background:linear-gradient(180deg,var(--green) 0%,var(--green-mid) 100%);
+  color:#fdfaf3;
+  padding:18px 0;
+  position:sticky; top:0; z-index:50;
+  box-shadow:0 2px 18px rgba(0,0,0,.12);
+}
+.site-header .row{
+  display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.brand{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.35rem;
+  font-weight:700;
+  letter-spacing:.01em;
+  display:flex; align-items:center; gap:8px;
+}
+.brand .dot{
+  width:9px;height:9px;border-radius:50%;
+  background:var(--gold-soft);
+  box-shadow:0 0 0 4px rgba(230,192,104,.25);
+}
+.nav-pills{
+  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;
+}
+.nav-pills a{
+  font-size:.76rem;
+  padding:7px 13px;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.16);
+  color:#e9f0e9;
+  white-space:nowrap;
+  transition:background .15s ease, transform .15s ease;
+}
+.nav-pills a:hover{ background:rgba(255,255,255,.18); transform:translateY(-1px); }
+
+/* ---------- Hero ---------- */
+.hero{
+  background:
+    radial-gradient(circle at 15% 20%, rgba(200,145,43,.16), transparent 45%),
+    radial-gradient(circle at 85% 0%, rgba(63,107,74,.18), transparent 40%),
+    var(--paper);
+  padding:64px 0 46px;
+  border-bottom:1px solid var(--line);
+}
+.hero-eyebrow{
+  display:inline-block;
+  font-size:.72rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--accent);
+  background:#fbe9d8;
+  padding:6px 14px;
+  border-radius:999px;
+  margin-bottom:18px;
+  font-weight:600;
+}
+.hero h1{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:2.6rem;
+  line-height:1.12;
+  color:var(--green);
+  margin:0 0 16px;
+  max-width:680px;
+}
+.hero p.lead{
+  font-size:1.05rem;
+  color:var(--ink-soft);
+  max-width:560px;
+  margin:0 0 30px;
+}
+.hero-stats{
+  display:flex; gap:14px; flex-wrap:wrap;
+}
+.stat-pill{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px 20px;
+  box-shadow:var(--shadow);
+  min-width:130px;
+}
+.stat-pill .num{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.5rem;
+  color:var(--green);
+  font-weight:700;
+  display:block;
+}
+.stat-pill .label{
+  font-size:.72rem;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+/* ---------- Main blog content (individual tool pages / posts) ---------- */
+main.page-main{ padding:44px 0 10px; }
+.page-title{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.9rem;
+  color:var(--green);
+  margin:0 0 18px;
+  border-bottom:3px solid var(--green);
+  padding-bottom:12px;
+}
+.post-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:30px;
+  margin-bottom:10px;
+  box-shadow:var(--shadow);
+}
+.post-body img{max-width:100%; border-radius:8px;}
+.post-body h2, .post-body h3{ color:var(--green); font-family:'Fraunces',Georgia,serif; }
+.post-body pre, .post-body code{
+  background:#111c14; color:#eef6ea; padding:2px 6px; border-radius:3px; font-size:.9em;
+}
+.post-body a{ color:var(--accent); text-decoration:underline; }
+
+/* ---------- Tools showcase ---------- */
+.tools-showcase{ padding:26px 0 70px; }
+.showcase-head{
+  text-align:center;
+  max-width:620px;
+  margin:0 auto 46px;
+}
+.showcase-head h2{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:2rem;
+  color:var(--green);
+  margin:0 0 10px;
+}
+.showcase-head p{
+  color:var(--ink-soft);
+  font-size:.95rem;
+  margin:0;
+}
+.tool-category{ margin-bottom:52px; scroll-margin-top:90px; }
+.category-head{
+  display:flex; align-items:baseline; gap:12px; margin-bottom:20px;
+  border-bottom:2px solid var(--line);
+  padding-bottom:10px;
+}
+.category-head h3{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.3rem;
+  color:var(--green);
+  margin:0;
+}
+.category-head .cat-count{
+  font-size:.75rem;
+  color:var(--ink-soft);
+  background:var(--paper-soft);
+  border:1px solid var(--line);
+  padding:3px 10px;
+  border-radius:999px;
+}
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:18px;
+}
+.tool-card{
+  position:relative;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:24px 22px;
+  box-shadow:var(--shadow);
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  display:flex; flex-direction:column; gap:10px;
+  min-height:168px;
+}
+.tool-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--shadow-lg);
+  border-color:var(--gold-soft);
+}
+.tool-card .icon-badge{
+  width:44px; height:44px;
+  border-radius:12px;
+  background:linear-gradient(145deg,var(--green-mid),var(--green));
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.3rem;
+  box-shadow:0 6px 14px rgba(31,58,41,.25);
+}
+.tool-card h4{
+  margin:0;
+  font-size:1.02rem;
+  color:var(--green);
+  font-family:'Fraunces',Georgia,serif;
+}
+.tool-card p{
+  margin:0;
+  font-size:.83rem;
+  color:var(--ink-soft);
+  flex-grow:1;
+}
+.tool-card .badge{
+  position:absolute;
+  top:16px; right:16px;
+  font-size:.62rem;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  padding:4px 9px;
+  border-radius:999px;
+  font-weight:700;
+}
+.badge.live{ background:#e3f2e6; color:#1f6b3a; }
+.badge.soon{ background:#f3ede0; color:var(--gold); }
+.tool-card .cta{
+  font-size:.8rem;
+  font-weight:600;
+  color:var(--green);
+  display:inline-flex; align-items:center; gap:6px;
+  margin-top:4px;
+}
+.tool-card.disabled{ cursor:default; opacity:.72; }
+.tool-card.disabled:hover{ transform:none; box-shadow:var(--shadow); border-color:var(--line); }
+.tool-card.disabled .cta{ color:var(--ink-soft); }
+
+/* ---------- Footer ---------- */
+.site-footer{
+  background:var(--green);
+  color:#cfe0d2;
+  padding:34px 0;
+  text-align:center;
+  font-size:.82rem;
+}
+.site-footer .foot-brand{
+  font-family:'Fraunces',Georgia,serif;
+  color:#fff;
+  font-size:1.05rem;
+  margin-bottom:6px;
+}
+
+@media(max-width:760px){
+  .hero h1{ font-size:2rem; }
+  .nav-pills{ display:none; }
+  .post-card{ padding:20px; }
+}
+]]></b:skin>
+</head>
+<body>
+
+<header class='site-header'>
+  <div class='container row'>
+    <a class='brand' expr:href='data:blog.homepageUrl'><span class='dot'></span><data:blog.title/></a>
+    <nav class='nav-pills'>
+      <a href='#restaurant'>Restaurant Ops</a>
+      <a href='#finance'>Finance</a>
+      <a href='#health'>Health</a>
+      <a href='#calculators'>Calculators</a>
+      <a href='#utility'>Utility</a>
+      <a href='#documents'>Documents</a>
+      <a href='#creative'>Creative</a>
+      <a href='#family'>Family</a>
+      <a href='#accessibility'>Accessibility</a>
+    </nav>
+  </div>
+</header>
+
+<section class='hero'>
+  <div class='container'>
+    <span class='hero-eyebrow'>Free &#183; Fast &#183; No Signup</span>
+    <h1><data:blog.title/></h1>
+    <p class='lead'><b:if cond='data:blog.metaDescription'><data:blog.metaDescription/><b:else/>Aassan Pak brings you free, fast, no-signup tools for everyday life &#8212; from daily sales reports to calculators, documents and creative generators. Simple tools, made easy.</b:if></p>
+    <div class='hero-stats'>
+      <div class='stat-pill'><span class='num'>18</span><span class='label'>Tools Planned</span></div>
+      <div class='stat-pill'><span class='num'>100%</span><span class='label'>Free</span></div>
+      <div class='stat-pill'><span class='num'>0</span><span class='label'>Signups Needed</span></div>
+    </div>
+  </div>
+</section>
+
+<main class='page-main container'>
+  <b:section id='main' class='main' showaddelement='no'>
+    <b:widget id='Blog1' locked='false' title='Blog Posts' type='Blog' version='2'>
+      <b:widget-settings>
+        <b:widget-setting name='showDateHeader'>false</b:widget-setting>
+        <b:widget-setting name='showAuthor'>false</b:widget-setting>
+        <b:widget-setting name='showLabels'>false</b:widget-setting>
+        <b:widget-setting name='showLocation'>false</b:widget-setting>
+        <b:widget-setting name='showReactions'>false</b:widget-setting>
+      </b:widget-settings>
+      <b:includable id='main' var='top'>
+        <b:loop values='data:posts' var='post'>
+          <b:include data='post' name='post'/>
+        </b:loop>
+      </b:includable>
+
+      <b:includable id='post' var='post'>
+        <article class='post-card'>
+          <h1 class='page-title'><data:post.title/></h1>
+          <div class='post-body' expr:id='"post-" + data:post.id'>
+            <data:post.body/>
+          </div>
+        </article>
+      </b:includable>
+    </b:widget>
+  </b:section>
+</main>
+
+<section class='tools-showcase container'>
+  <div class='showcase-head'>
+    <h2>Explore the toolkit</h2>
+    <p>Every tool below runs entirely in your browser. Live tools open instantly &#8212; the rest are on the way, one publish at a time.</p>
+  </div>
+
+  <div class='tool-category' id='restaurant'>
+    <div class='category-head'><h3>Restaurant Ops</h3><span class='cat-count'>2 tools</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128202;</span>
+        <h4>Daily Sales Segment Calculator</h4>
+        <p>Upload your Daily Sales Detail export and get an accurate Dine In / Take Away / Delivery breakdown, ready to share.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128176;</span>
+        <h4>Cash Denomination &amp; Deposit Calculator</h4>
+        <p>Count your cash by note, log expenses, and reconcile against your POS cash sale in real time.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='finance'>
+    <div class='category-head'><h3>Finance &amp; Business</h3><span class='cat-count'>4 tools</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#127961;</span>
+        <h4>Zakat Calculator</h4>
+        <p>Work out your annual Zakat based on current Nisab and your assets.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#129534;</span>
+        <h4>Invoice / Quotation Generator</h4>
+        <p>Create a clean, professional invoice or quotation in minutes.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128200;</span>
+        <h4>Profit Margin Calculator</h4>
+        <p>Work out margin, markup, or selling price instantly.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#127991;&#65039;</span>
+        <h4>Discount Price Calculator</h4>
+        <p>Calculate discounted prices and total savings in one click.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='health'>
+    <div class='category-head'><h3>Health &amp; Everyday Life</h3><span class='cat-count'>3 tools</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#127874;</span>
+        <h4>Age Calculator</h4>
+        <p>Find your exact age in years, months and days from your birth date.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#9878;&#65039;</span>
+        <h4>BMI &amp; Calorie Calculator</h4>
+        <p>Check your BMI and estimated daily calorie needs.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#129700;</span>
+        <h4>Pregnancy Due Date Calculator</h4>
+        <p>Estimate your due date and track your pregnancy week by week.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='calculators'>
+    <div class='category-head'><h3>Everyday Calculators</h3><span class='cat-count'>1 tool &#183; 3-in-1</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128290;</span>
+        <h4>Percentage &#183; Date Difference &#183; Unit Converter</h4>
+        <p>Three everyday calculators in one clean, tabbed page.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='utility'>
+    <div class='category-head'><h3>Everyday Utility</h3><span class='cat-count'>4 tools</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#9999;&#65039;</span>
+        <h4>Word &amp; Character Counter</h4>
+        <p>Instant word, character and reading-time counts as you type.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128283;</span>
+        <h4>QR Code Generator</h4>
+        <p>Turn any link or text into a downloadable QR code.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128444;&#65039;</span>
+        <h4>Image Compressor / Resizer</h4>
+        <p>Shrink and resize images entirely in your browser &#8212; nothing uploaded.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128272;</span>
+        <h4>Password Generator</h4>
+        <p>Generate strong passwords and check password strength.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='documents'>
+    <div class='category-head'><h3>Documents &amp; Files</h3><span class='cat-count'>3 tools</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128196;</span>
+        <h4>JPG &#8646; PDF Converter</h4>
+        <p>Convert images to PDF or PDF pages to images, right in your browser.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128167;</span>
+        <h4>Image Watermark Adder</h4>
+        <p>Add a text or logo watermark to your photos before sharing.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#9986;&#65039;</span>
+        <h4>PDF Merge / Split Tool</h4>
+        <p>Combine multiple PDFs into one, or split one into many.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='creative'>
+    <div class='category-head'><h3>Creative &amp; Cards</h3><span class='cat-count'>1 tool</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#127769;</span>
+        <h4>Quote &amp; Dua Card Generator</h4>
+        <p>Beautifully styled motivational quotes and Islamic duas, ready to download and share.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='family'>
+    <div class='category-head'><h3>Family &amp; Fun</h3><span class='cat-count'>1 tool</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#128118;</span>
+        <h4>Baby Name Generator</h4>
+        <p>Discover names by gender, starting letter and meaning.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+  <div class='tool-category' id='accessibility'>
+    <div class='category-head'><h3>Accessibility</h3><span class='cat-count'>1 tool</span></div>
+    <div class='tools-grid'>
+      <a class='tool-card disabled' href='#'>
+        <span class='badge soon'>Coming Soon</span>
+        <span class='icon-badge'>&#127908;</span>
+        <h4>Text-to-Speech / Speech-to-Text</h4>
+        <p>Listen to any text out loud, or turn your voice into typed text.</p>
+        <span class='cta'>Coming soon</span>
+      </a>
+    </div>
+  </div>
+
+</section>
+
+<footer class='site-footer'>
+  <div class='container'>
+    <div class='foot-brand'><data:blog.title/></div>
+    <p>&#169; <data:blog.title/> &#8212; free tools, no signup, made simple.</p>
+  </div>
+</footer>
+
+</body>
+</html>
