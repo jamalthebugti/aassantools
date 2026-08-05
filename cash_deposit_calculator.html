@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cash Denomination &amp; Deposit Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --ink:#1c2b22;
+  --line:#dbd5c2;
+  --green:#3f6b4a;
+  --green-dark:#2b4a34;
+  --gold:#c8912b;
+  --paper:#f6f4ee;
+  --mono: "Space Mono", "Courier New", Courier, monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Inter',-apple-system,sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  padding:28px 16px 60px;
+}
+.wrap{ max-width:760px; margin:0 auto; }
+h2.tool-title{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.6rem;
+  margin:0 0 4px;
+  color:var(--green-dark);
+}
+p.sub{ font-size:.85rem; color:#5a5a4f; margin:0 0 26px; }
+.card{
+  background:#fffdf8;
+  border:1px solid var(--line);
+  border-radius:6px;
+  padding:22px;
+  margin-bottom:20px;
+}
+.card h3{
+  font-family:'Fraunces',Georgia,serif;
+  font-size:1.05rem;
+  color:var(--green-dark);
+  margin:0 0 16px;
+}
+label{
+  display:block;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#6b6b5f;
+  margin-bottom:6px;
+}
+.row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:4px; }
+input[type=text], input[type=number]{
+  width:100%;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:3px;
+  font-family:inherit;
+  font-size:.95rem;
+  background:#fff;
+}
+table.denom{ width:100%; border-collapse:collapse; font-size:.9rem; }
+table.denom th{
+  text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+  color:#6b6b5f; padding:6px 8px; border-bottom:2px solid var(--line);
+}
+table.denom td{ padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+table.denom td.note-val{ font-family:var(--mono); font-weight:700; color:var(--green-dark); }
+table.denom input[type=number]{ width:80px; text-align:center; }
+table.denom td.row-total{ font-family:var(--mono); text-align:right; font-weight:600; }
+tr.grand-row td{ border-top:2px solid var(--green-dark); border-bottom:none; font-weight:800; padding-top:10px; }
+tr.grand-row td.row-total{ color:var(--green-dark); font-size:1.05rem; }
+
+#expenseRows .expense-row{
+  display:grid;
+  grid-template-columns:1fr 140px 34px;
+  gap:8px;
+  margin-bottom:8px;
+  align-items:center;
+}
+#expenseRows .expense-row input{ margin:0; }
+.remove-row{
+  width:34px; height:34px;
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:3px;
+  cursor:pointer;
+  color:#a3312a;
+  font-size:1rem;
+  line-height:1;
+}
+.remove-row:hover{ background:#fbeaea; }
+#addExpenseBtn{
+  background:#fff;
+  color:var(--green-dark);
+  border:1px solid var(--green-dark);
+  padding:8px 14px;
+  border-radius:4px;
+  font-size:.85rem;
+  cursor:pointer;
+  margin-top:4px;
+}
+#addExpenseBtn:hover{ background:#eef2e9; }
+.expense-total-row{
+  display:flex; justify-content:space-between; align-items:center;
+  border-top:2px solid var(--green-dark); margin-top:10px; padding-top:10px;
+  font-weight:800; font-family:var(--mono);
+}
+
+.summary-grid{ display:flex; flex-direction:column; gap:0; }
+.summary-line{
+  display:flex; justify-content:space-between; align-items:baseline;
+  padding:12px 0; border-bottom:1px dashed var(--line); font-size:.95rem;
+}
+.summary-line:last-child{ border-bottom:none; }
+.summary-line .val{ font-family:var(--mono); font-weight:700; }
+.summary-line.pos-input{ align-items:center; }
+.summary-line.pos-input input{ width:160px; text-align:right; font-family:var(--mono); font-weight:700; }
+.summary-line.gross .val{ color:var(--green-dark); font-size:1.1rem; }
+.summary-line.diff{ border-top:2px solid var(--ink); margin-top:4px; padding-top:14px; }
+.summary-line.diff .val{ font-size:1.15rem; }
+.diff-ok{ color:#1f6b3a; }
+.diff-bad{ color:#a3312a; }
+
+.style-tabs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.style-tab{
+  background:#fff; color:var(--green-dark); border:1px solid var(--line);
+  padding:8px 14px; border-radius:20px; font-size:.82rem; cursor:pointer;
+}
+.style-tab.active{ background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+.share-preview-wrap{
+  display:flex; justify-content:center; padding:20px 0 8px;
+  background:repeating-conic-gradient(#eee 0% 25%, #fafafa 0% 50%) 0 0/16px 16px;
+  border-radius:6px; margin-bottom:14px; overflow-x:auto;
+}
+#shareCard{ width:380px; padding:32px 28px; border-radius:10px; font-family:'Inter',sans-serif; }
+#shareCard .share-branch{ font-size:1.3rem; font-weight:800; margin:0 0 2px; }
+#shareCard .share-date{ font-size:.85rem; margin:0 0 18px; opacity:.85; }
+#shareCard .share-heading{ font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; margin:0 0 4px; opacity:.7; }
+#shareCard .share-net{ font-size:2.1rem; font-weight:800; margin:0 0 22px; line-height:1.15; }
+#shareCard .share-metrics{ display:flex; flex-direction:column; gap:12px; }
+#shareCard .metric-row{ display:flex; justify-content:space-between; align-items:baseline; padding:10px 0; }
+#shareCard .metric-name{ font-size:.85rem; font-weight:600; }
+#shareCard .metric-value{ font-size:1.05rem; font-weight:700; font-family:'Space Mono',monospace; }
+
+#shareCard.style-emerald{ background:#f6f4ee; color:#1c2b22; border:1px solid #dbd5c2; position:relative; }
+#shareCard.style-emerald::before, #shareCard.style-emerald::after{
+  content:""; position:absolute; left:0; right:0; height:2px;
+  background:repeating-linear-gradient(90deg,#dbd5c2 0 8px, transparent 8px 16px);
+}
+#shareCard.style-emerald::before{ top:0; } #shareCard.style-emerald::after{ bottom:0; }
+#shareCard.style-emerald .share-branch, #shareCard.style-emerald .share-net{ color:#2b4a34; font-family:'Fraunces',serif; }
+#shareCard.style-emerald .share-heading{ color:#c8912b; }
+#shareCard.style-emerald .metric-row{ border-bottom:1px dashed #dbd5c2; }
+#shareCard.style-emerald .metric-row:last-child{ border-bottom:none; }
+#shareCard.style-emerald .metric-value{ color:#2b4a34; }
+
+#shareCard.style-dark{ background:#0d1410; color:#eef6ea; border:1px solid #1e2b22; }
+#shareCard.style-dark .share-branch{ color:#5cf29a; font-weight:800; }
+#shareCard.style-dark .share-heading{ color:#e08a4a; }
+#shareCard.style-dark .share-net{ color:#5cf29a; text-shadow:0 0 18px rgba(92,242,154,.45); }
+#shareCard.style-dark .metric-row{ border-bottom:1px solid #1e2b22; }
+#shareCard.style-dark .metric-row:last-child{ border-bottom:none; }
+#shareCard.style-dark .metric-value{ color:#5cf29a; }
+
+#shareCard.style-gradient{ background:linear-gradient(155deg,#b3541e 0%,#e08a4a 45%,#3f6b4a 100%); color:#fff8ef; text-align:center; border:none; }
+#shareCard.style-gradient .share-branch{ font-family:'Fraunces',serif; font-size:1.5rem; }
+#shareCard.style-gradient .share-net{ font-size:2.5rem; }
+#shareCard.style-gradient .metric-row{ background:rgba(255,255,255,.14); border-radius:8px; padding:12px 14px; }
+#shareCard.style-gradient .metric-value{ color:#fff; }
+
+#shareCard.style-mono{ background:#fff; color:#111; border:1.5px solid #111; }
+#shareCard.style-mono .share-branch{ text-transform:uppercase; letter-spacing:.08em; font-weight:800; }
+#shareCard.style-mono .share-heading{ color:#111; opacity:.5; }
+#shareCard.style-mono .share-net{ font-family:'Space Mono',monospace; }
+#shareCard.style-mono .metric-row{ border-bottom:1px solid #111; }
+#shareCard.style-mono .metric-row:last-child{ border-bottom:none; }
+#shareCard.style-mono .metric-name{ text-transform:uppercase; font-size:.75rem; letter-spacing:.06em; }
+#shareCard.style-mono .metric-value{ color:#111; }
+
+pre#waMsg{
+  font-family:var(--mono); background:#111c14; color:#eef6ea; padding:18px; border-radius:5px;
+  font-size:.95rem; line-height:1.65; white-space:pre-wrap; word-break:break-word;
+}
+.actions{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+button.primary{
+  background:var(--green-dark); color:#fff; border:none; padding:11px 18px; border-radius:4px;
+  font-size:.9rem; cursor:pointer; letter-spacing:.02em;
+}
+button.primary:hover{ background:#213b28; }
+button.secondary{
+  background:#fff; color:var(--green-dark); border:1px solid var(--green-dark);
+  padding:11px 18px; border-radius:4px; font-size:.9rem; cursor:pointer;
+}
+button.secondary:hover{ background:#eef2e9; }
+.section-label{ font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:#6b6b5f; margin:4px 0 10px; }
+hr.sep{ border:none; border-top:1px solid var(--line); margin:26px 0; }
+.footnote{ font-size:.75rem; color:#7a7a6d; margin-top:10px; }
+@media(max-width:560px){
+  .row2{ grid-template-columns:1fr; }
+  #expenseRows .expense-row{ grid-template-columns:1fr 100px 34px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h2 class="tool-title">Cash Denomination &amp; Deposit Calculator</h2>
+  <p class="sub">Count your cash by note, list today's expenses, and instantly see if it matches your POS cash sale — plus a shareable summary.</p>
+
+  <div class="card">
+    <div class="row2">
+      <div>
+        <label for="branchName">Branch</label>
+        <input type="text" id="branchName" placeholder="Insert Branch Name">
+      </div>
+      <div>
+        <label for="periodLabel">Date / Period</label>
+        <input type="text" id="periodLabel" placeholder="e.g. 26-June-2026 or 26 and 27-June-2026">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Cash Count</h3>
+    <table class="denom">
+      <thead><tr><th>Note</th><th>Count</th><th style="text-align:right;">Total</th></tr></thead>
+      <tbody id="denomBody"></tbody>
+      <tfoot>
+        <tr class="grand-row">
+          <td colspan="2">Total Cash Counted</td>
+          <td class="row-total" id="cashTotal">0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Expenses Paid From Cash</h3>
+    <div id="expenseRows"></div>
+    <button type="button" id="addExpenseBtn">+ Add expense</button>
+    <div class="expense-total-row">
+      <span>Total Expense</span>
+      <span id="expenseTotal">0</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Reconciliation</h3>
+    <div class="summary-grid">
+      <div class="summary-line"><span>Total Cash Counted</span><span class="val" id="sumCash">0</span></div>
+      <div class="summary-line"><span>+ Total Expense</span><span class="val" id="sumExpense">0</span></div>
+      <div class="summary-line gross"><span>= Gross Total</span><span class="val" id="sumGross">0</span></div>
+      <div class="summary-line pos-input">
+        <label for="posSale" style="margin:0;">POS Cash Sale</label>
+        <input type="number" id="posSale" placeholder="0" step="any">
+      </div>
+      <div class="summary-line diff"><span>Difference</span><span class="val" id="sumDiff">0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="section-label">Shareable image — pick a style</p>
+    <div class="style-tabs" id="styleTabs">
+      <button type="button" class="style-tab" data-style="emerald">1 · Emerald Receipt</button>
+      <button type="button" class="style-tab" data-style="dark">2 · Midnight Neon</button>
+      <button type="button" class="style-tab" data-style="gradient">3 · Sunset Bold</button>
+      <button type="button" class="style-tab" data-style="mono">4 · Minimal Mono</button>
+    </div>
+    <div class="share-preview-wrap">
+      <div id="shareCard" class="style-emerald">
+        <p class="share-branch" id="scBranch"></p>
+        <p class="share-date" id="scDate"></p>
+        <p class="share-heading">Gross Total</p>
+        <p class="share-net" id="scNet"></p>
+        <div class="share-metrics" id="scMetrics"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="downloadImgBtn">Download as image</button>
+    </div>
+
+    <hr class="sep">
+
+    <p class="section-label">WhatsApp text message</p>
+    <pre id="waMsg"></pre>
+    <div class="actions">
+      <button class="primary" id="copyBtn">Copy message</button>
+      <button class="secondary" id="downloadTxtBtn">Download as .txt</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>How to use this</h3>
+    <ol style="font-size:.88rem; line-height:1.6; padding-left:20px; margin:0;">
+      <li>Enter the branch and date/period.</li>
+      <li>Count each note and enter how many you have — totals update as you type.</li>
+      <li>Add any expenses paid out of the cash before deposit (fuel, small purchases, etc.).</li>
+      <li>Enter the POS Cash Sale figure from your system — the Difference shows instantly, in green if it matches, red if it doesn't.</li>
+      <li>Pick an image style to download, or copy the WhatsApp message.</li>
+    </ol>
+    <p class="footnote">Everything happens locally in your browser — nothing is uploaded anywhere.</p>
+  </div>
+
+</div>
+
+<script>
+const DENOMS = [5000,1000,500,100,50,20,10];
+const denomBody = document.getElementById('denomBody');
+const cashTotalEl = document.getElementById('cashTotal');
+const expenseRows = document.getElementById('expenseRows');
+const expenseTotalEl = document.getElementById('expenseTotal');
+const sumCash = document.getElementById('sumCash');
+const sumExpense = document.getElementById('sumExpense');
+const sumGross = document.getElementById('sumGross');
+const sumDiff = document.getElementById('sumDiff');
+const posSaleInput = document.getElementById('posSale');
+const branchInput = document.getElementById('branchName');
+const periodInput = document.getElementById('periodLabel');
+const shareCard = document.getElementById('shareCard');
+
+let currentStyle = 'emerald';
+const TRI_DOWN = '\u{1F53B}';
+const TRI_UP = '\u{1F53A}';
+const ARROW = '\u{27A1}\u{FE0F}';
+
+function fmt(n){ return Math.round(n).toLocaleString('en-US'); }
+
+// ---- build denomination rows ----
+DENOMS.forEach(note => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="note-val">${fmt(note)}</td>
+    <td><input type="number" min="0" step="1" class="denom-count" data-note="${note}" placeholder="0"></td>
+    <td class="row-total" data-total-for="${note}">0</td>
+  `;
+  denomBody.appendChild(tr);
+});
+
+// ---- expense rows (dynamic) ----
+function addExpenseRow(name = '', amount = ''){
+  const row = document.createElement('div');
+  row.className = 'expense-row';
+  row.innerHTML = `
+    <input type="text" class="exp-name" placeholder="Expense name (e.g. Fuel)" value="${name}">
+    <input type="number" class="exp-amount" placeholder="Amount" step="any" value="${amount}">
+    <button type="button" class="remove-row" title="Remove">&times;</button>
+  `;
+  expenseRows.appendChild(row);
+}
+addExpenseRow();
+addExpenseRow();
+
+document.getElementById('addExpenseBtn').addEventListener('click', () => { addExpenseRow(); recalc(); });
+expenseRows.addEventListener('click', e => {
+  if(e.target.classList.contains('remove-row')){
+    e.target.closest('.expense-row').remove();
+    recalc();
+  }
+});
+
+function recalc(){
+  // cash counted
+  let cashTotal = 0;
+  document.querySelectorAll('.denom-count').forEach(inp => {
+    const note = Number(inp.dataset.note);
+    const count = Number(inp.value) || 0;
+    const rowTotal = note * count;
+    cashTotal += rowTotal;
+    document.querySelector(`[data-total-for="${note}"]`).textContent = fmt(rowTotal);
+  });
+  cashTotalEl.textContent = fmt(cashTotal);
+
+  // expenses
+  let expenseTotal = 0;
+  const expenseItems = [];
+  document.querySelectorAll('.expense-row').forEach(row => {
+    const name = row.querySelector('.exp-name').value.trim();
+    const amt = Number(row.querySelector('.exp-amount').value) || 0;
+    expenseTotal += amt;
+    if(name || amt) expenseItems.push({name: name || 'Expense', amt});
+  });
+  expenseTotalEl.textContent = fmt(expenseTotal);
+
+  const gross = cashTotal + expenseTotal;
+  const posSale = Number(posSaleInput.value) || 0;
+  const diff = gross - posSale;
+
+  sumCash.textContent = fmt(cashTotal);
+  sumExpense.textContent = fmt(expenseTotal);
+  sumGross.textContent = fmt(gross);
+  sumDiff.textContent = (diff === 0 ? '0' : (diff > 0 ? '+' : '') + fmt(diff));
+  sumDiff.className = 'val ' + (diff === 0 ? 'diff-ok' : 'diff-bad');
+
+  renderShare({cashTotal, expenseTotal, gross, posSale, diff, expenseItems});
+}
+
+function renderShare(d){
+  const branch = branchInput.value.trim();
+  const period = periodInput.value.trim();
+
+  document.getElementById('scBranch').textContent = branch || 'Cash Deposit Summary';
+  document.getElementById('scDate').textContent = period;
+  document.getElementById('scNet').textContent = fmt(d.gross);
+
+  const metricsHtml = [
+    ['Cash Counted', d.cashTotal],
+    ['Total Expense', d.expenseTotal],
+    ['POS Cash Sale', d.posSale],
+    ['Difference', d.diff]
+  ].map(([name, val]) => `
+    <div class="metric-row">
+      <span class="metric-name">${name}</span>
+      <span class="metric-value">${fmt(val)}</span>
+    </div>
+  `).join('');
+  document.getElementById('scMetrics').innerHTML = metricsHtml;
+
+  // WhatsApp message
+  let msg = '';
+  if(branch) msg += `*${TRI_DOWN}${branch}${TRI_DOWN}*\n`;
+  if(period) msg += `    *${period}*\n`;
+  msg += `    *${TRI_UP} Cash Deposit${TRI_UP}*\n`;
+  msg += `*Cash Counted${ARROW}${fmt(d.cashTotal)}*\n`;
+  msg += `*Total Expense${ARROW}${fmt(d.expenseTotal)}*\n`;
+  msg += `*Gross Total${ARROW}${fmt(d.gross)}*\n`;
+  msg += `*POS Cash Sale${ARROW}${fmt(d.posSale)}*\n`;
+  msg += `*Difference${ARROW}${fmt(d.diff)}*`;
+
+  document.getElementById('waMsg').textContent = msg;
+
+  document.getElementById('copyBtn').onclick = function(){
+    navigator.clipboard.writeText(msg).then(()=>{
+      this.textContent = 'Copied!';
+      setTimeout(()=>{ this.textContent = 'Copy message'; }, 1500);
+    });
+  };
+  document.getElementById('downloadTxtBtn').onclick = function(){
+    const blob = new Blob([msg], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'cash_deposit_summary.txt'; a.click();
+    URL.revokeObjectURL(url);
+  };
+}
+
+document.getElementById('styleTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.style-tab');
+  if(!btn) return;
+  currentStyle = btn.dataset.style;
+  document.querySelectorAll('.style-tab').forEach(b => b.classList.toggle('active', b === btn));
+  shareCard.className = 'style-' + currentStyle;
+});
+document.querySelector('.style-tab[data-style="emerald"]').classList.add('active');
+
+document.getElementById('downloadImgBtn').addEventListener('click', function(){
+  const btn = this;
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Rendering…';
+  html2canvas(shareCard, {scale:2, backgroundColor:null, useCORS:true}).then(canvas => {
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `cash_deposit_${currentStyle}.png`; a.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false; btn.textContent = originalText;
+    });
+  }).catch(err => {
+    console.error(err);
+    btn.disabled = false; btn.textContent = originalText;
+  });
+});
+
+document.addEventListener('input', e => {
+  if(e.target.matches('.denom-count, .exp-name, .exp-amount, #posSale, #branchName, #periodLabel')){
+    recalc();
+  }
+});
+
+// default period to today, editable
+(function setDefaultDate(){
+  const d = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  periodInput.value = `${d.getDate()}-${months[d.getMonth()]}-${d.getFullYear()}`;
+})();
+
+recalc();
+
+// ---- lets this tool sit cleanly inside an iframe on the Blogger page ----
+function sendHeight(){
+  if(window.parent !== window){
+    window.parent.postMessage({ aasanToolHeight: document.documentElement.scrollHeight }, '*');
+  }
+}
+window.addEventListener('load', sendHeight);
+if(window.ResizeObserver){
+  new ResizeObserver(sendHeight).observe(document.body);
+}
+</script>
+</body>
+</html>
