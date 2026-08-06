@@ -751,7 +751,10 @@ function toNumber(v){
 }
 
 function fmt(n){
-  return Math.round(n).toLocaleString('en-US');
+    return Number(n).toLocaleString('en-US', {
+        minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+        maximumFractionDigits: 2
+    });
 }
 
 function pad2(n){ return String(n).padStart(2,'0'); }
