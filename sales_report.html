@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Sales Segment Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  .aasan-sales-tool{
+    --ink:#1c2b22;
+    --line:#dbd5c2;
+    --green:#3f6b4a;
+    --green-dark:#2b4a34;
+    --gold:#c8912b;
+    --mono: "Space Mono", "Courier New", Courier, monospace;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    color:var(--ink);
+    max-width:720px;
+    margin:0 auto;
+  }
+  .aasan-sales-tool *{box-sizing:border-box;}
+  .aasan-sales-tool .tool-title{
+    font-family:'Fraunces',Georgia,serif;
+    font-size: 1.6rem;
+    letter-spacing:.01em;
+    margin: 0 0 4px;
+    color: var(--green-dark);
+  }
+  .aasan-sales-tool .sub{
+    font-size: .85rem;
+    color:#5a5a4f;
+    margin: 0 0 28px;
+  }
+  .aasan-sales-tool .card{
+    background:#fffdf8;
+    border:1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+  .aasan-sales-tool label{
+    display:block;
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#6b6b5f;
+    margin-bottom:6px;
+  }
+  .aasan-sales-tool .hint{
+    font-size:.72rem;
+    color:#8a8a7c;
+    margin:-3px 0 8px;
+    text-transform:none;
+    letter-spacing:0;
+  }
+  .aasan-sales-tool .row2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:14px;
+    margin-bottom:16px;
+  }
+  .aasan-sales-tool input[type=text]{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    font-family: inherit;
+    font-size: .95rem;
+    background:#fff;
+  }
+  .aasan-sales-tool .date-range-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .aasan-sales-tool input[type=date]{
+    flex:1;
+    min-width:0;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    font-family: inherit;
+    font-size: .9rem;
+    background:#fff;
+  }
+  .aasan-sales-tool .date-sep{
+    font-size:.8rem;
+    color:#6b6b5f;
+    flex-shrink:0;
+  }
+  .aasan-sales-tool .dropzone{
+    border: 2px dashed var(--green);
+    border-radius: 6px;
+    padding: 28px 16px;
+    text-align:center;
+    cursor:pointer;
+    background: #eef2e9;
+    transition: background .15s ease;
+  }
+  .aasan-sales-tool .dropzone:hover{ background:#e4ead9; }
+  .aasan-sales-tool .dropzone.drag{ background:#dce6cf; }
+  .aasan-sales-tool .dropzone p{ margin:4px 0; }
+  .aasan-sales-tool .dropzone .big{ font-weight:bold; color: var(--green-dark); }
+  .aasan-sales-tool .dropzone .small{ font-size:.78rem; color:#6b6b5f; }
+  .aasan-sales-tool input[type=file]{ display:none; }
+  .aasan-sales-tool #filename{
+    margin-top:10px;
+    font-size:.85rem;
+    color: var(--green-dark);
+    font-weight:bold;
+  }
+  .aasan-sales-tool button{
+    background: var(--green-dark);
+    color:#fff;
+    border:none;
+    padding: 11px 18px;
+    border-radius: 4px;
+    font-size: .9rem;
+    cursor:pointer;
+    letter-spacing:.02em;
+  }
+  .aasan-sales-tool button:hover{ background:#213b28; }
+  .aasan-sales-tool button:disabled{ background:#9aa79f; cursor:not-allowed; }
+  .aasan-sales-tool #status{
+    margin-top:12px;
+    font-size:.85rem;
+  }
+  .aasan-sales-tool #status.err{ color:#a3312a; }
+  .aasan-sales-tool #status.ok{ color: var(--green-dark); }
+  .aasan-sales-tool #resultCard{ display:none; }
+  .aasan-sales-tool #resultCard h3, .aasan-sales-tool .card-heading{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:1.1rem;
+    margin-top:0;
+    color: var(--green-dark);
+  }
+  .aasan-sales-tool table.check{
+    width:100%;
+    border-collapse: collapse;
+    font-size:.82rem;
+    margin-bottom:22px;
+  }
+  .aasan-sales-tool table.check th, .aasan-sales-tool table.check td{
+    border:1px solid var(--line);
+    padding:6px 8px;
+    text-align:right;
+  }
+  .aasan-sales-tool table.check th:first-child, .aasan-sales-tool table.check td:first-child{ text-align:left; }
+  .aasan-sales-tool table.check thead{ background:#eef2e9; }
+
+  /* ---- style tabs ---- */
+  .aasan-sales-tool .style-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+  .aasan-sales-tool .style-tab{
+    background:#fff;
+    color: var(--green-dark);
+    border:1px solid var(--line);
+    padding:8px 14px;
+    border-radius:20px;
+    font-size:.82rem;
+    cursor:pointer;
+  }
+  .aasan-sales-tool .style-tab.active{
+    background: var(--green-dark);
+    color:#fff;
+    border-color: var(--green-dark);
+  }
+
+  /* ---- share card preview wrapper (scrollable on small screens) ---- */
+  .aasan-sales-tool .share-preview-wrap{
+    display:flex;
+    justify-content:center;
+    padding:20px 0 8px;
+    background: repeating-conic-gradient(#eee 0% 25%, #fafafa 0% 50%) 0 0/16px 16px;
+    border-radius:6px;
+    margin-bottom:14px;
+    overflow-x:auto;
+  }
+
+  .aasan-sales-tool #shareCard{
+    width:380px;
+    padding:32px 28px;
+    border-radius:10px;
+    font-family:'Inter',sans-serif;
+  }
+  .aasan-sales-tool #shareCard .share-branch{
+    font-size:1.3rem;
+    font-weight:800;
+    margin:0 0 2px;
+  }
+  .aasan-sales-tool #shareCard .share-date{
+    font-size:.85rem;
+    margin:0 0 18px;
+    opacity:.85;
+  }
+  .aasan-sales-tool #shareCard .share-heading{
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    margin:0 0 4px;
+    opacity:.7;
+  }
+  .aasan-sales-tool #shareCard .share-net{
+    font-size:2.1rem;
+    font-weight:800;
+    margin:0 0 2px;
+    line-height:1.15;
+  }
+  .aasan-sales-tool #shareCard .share-trans{
+    font-size:.85rem;
+    margin:0 0 22px;
+    opacity:.8;
+  }
+  .aasan-sales-tool #shareCard .share-metrics{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .aasan-sales-tool #shareCard .metric-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:10px 0;
+  }
+  .aasan-sales-tool #shareCard .metric-name{ font-size:.85rem; font-weight:600; }
+  .aasan-sales-tool #shareCard .metric-sub{ font-size:.68rem; opacity:.65; display:block; margin-top:2px; font-weight:400;}
+  .aasan-sales-tool #shareCard .metric-value{ font-size:1.05rem; font-weight:700; font-family:'Space Mono',monospace; }
+
+  .aasan-sales-tool #shareCard .share-substats{
+    display:flex;
+    gap:10px;
+    margin:0 0 18px;
+  }
+  .aasan-sales-tool #shareCard .substat{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .aasan-sales-tool #shareCard .substat-label{
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    opacity:.65;
+  }
+  .aasan-sales-tool #shareCard .substat-value{
+    font-size:1rem;
+    font-weight:700;
+    font-family:'Space Mono',monospace;
+  }
+
+  /* Style 1: Emerald Receipt */
+  .aasan-sales-tool #shareCard.style-emerald{
+    background:#f6f4ee;
+    color:#1c2b22;
+    border:1px solid #c9c2ae;
+    position:relative;
+  }
+  #shareCard.style-emerald::before,
+  .aasan-sales-tool #shareCard.style-emerald::after{
+    content:"";
+    position:absolute; left:0; right:0; height:2px;
+    background: repeating-linear-gradient(90deg,#c9c2ae 0 8px, transparent 8px 16px);
+  }
+  .aasan-sales-tool #shareCard.style-emerald::before{ top:0; }
+  .aasan-sales-tool #shareCard.style-emerald::after{ bottom:0; }
+  .aasan-sales-tool #shareCard.style-emerald .share-branch, .aasan-sales-tool #shareCard.style-emerald .share-net{ color:#2b4a34; font-family:'Fraunces',serif; }
+  .aasan-sales-tool #shareCard.style-emerald .share-heading{ color:#b3541e; }
+  .aasan-sales-tool #shareCard.style-emerald .metric-row{ border-bottom:1px dashed #c9c2ae; }
+  .aasan-sales-tool #shareCard.style-emerald .metric-row:last-child{ border-bottom:none; }
+  .aasan-sales-tool #shareCard.style-emerald .metric-value{ color:#2b4a34; }
+
+  /* Style 2: Midnight Neon — premium glassmorphic finance dashboard */
+  .aasan-sales-tool #shareCard.style-dark{
+    width:400px;
+    padding:36px 30px;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(92,242,154,.16) 0%, transparent 45%),
+      radial-gradient(circle at 100% 10%, rgba(94,163,255,.14) 0%, transparent 40%),
+      linear-gradient(160deg, #0a0f14 0%, #0d1a17 55%, #081012 100%);
+    color:#eaf4ef;
+    border:1px solid rgba(148,255,199,.18);
+    border-radius:20px;
+    position:relative;
+    overflow:hidden;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.02) inset, 0 30px 60px -20px rgba(0,0,0,.7);
+  }
+  .aasan-sales-tool #shareCard.style-dark::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size: 26px 26px;
+    -webkit-mask-image: radial-gradient(circle at 30% 10%, #000 0%, transparent 60%);
+            mask-image: radial-gradient(circle at 30% 10%, #000 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .aasan-sales-tool #shareCard.style-dark::after{
+    content:"";
+    position:absolute; top:-60px; right:-60px; width:180px; height:180px;
+    background: radial-gradient(circle, rgba(92,242,154,.35) 0%, transparent 70%);
+    filter: blur(10px);
+    pointer-events:none;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-branch{
+    position:relative;
+    color:#fff;
+    font-weight:800;
+    font-size:1.36rem;
+    letter-spacing:.01em;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-date{
+    position:relative;
+    color:#9fd9bb;
+    font-size:.8rem;
+    letter-spacing:.03em;
+    margin-bottom:26px;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-heading{
+    position:relative;
+    color:#6bf0a8;
+    font-size:.68rem;
+    letter-spacing:.2em;
+    opacity:.9;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-net{
+    position:relative;
+    color:#fff;
+    font-size:2.5rem;
+    letter-spacing:-.01em;
+    text-shadow:0 0 30px rgba(92,242,154,.5), 0 0 3px rgba(92,242,154,.9);
+    margin-bottom:4px;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-trans{
+    position:relative;
+    color:#a9c4b8;
+    font-size:.82rem;
+    margin-bottom:20px;
+  }
+  .aasan-sales-tool #shareCard.style-dark .share-substats{
+    position:relative;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .aasan-sales-tool #shareCard.style-dark .substat{
+    background: rgba(255,255,255,.05);
+    border:1px solid rgba(148,255,199,.16);
+    border-radius:12px;
+    padding:10px 12px;
+    backdrop-filter: blur(6px);
+  }
+  .aasan-sales-tool #shareCard.style-dark .substat-label{ color:#89c9a8; opacity:.85; }
+  .aasan-sales-tool #shareCard.style-dark .substat-value{ color:#fff; font-size:1.05rem; }
+  .aasan-sales-tool #shareCard.style-dark .share-metrics{
+    position:relative;
+    gap:10px;
+  }
+  .aasan-sales-tool #shareCard.style-dark .metric-row{
+    background: rgba(255,255,255,.045);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    padding:13px 16px;
+    backdrop-filter: blur(8px);
+  }
+  .aasan-sales-tool #shareCard.style-dark .metric-name{ color:#dcefe4; font-weight:600; }
+  .aasan-sales-tool #shareCard.style-dark .metric-sub{ color:#8fae9d; }
+  .aasan-sales-tool #shareCard.style-dark .metric-value{
+    color:#6bf0a8;
+    text-shadow:0 0 14px rgba(107,240,168,.55);
+  }
+
+  /* Style 3: Sunset Bold — rich gradient, oversized premium stat cards */
+  .aasan-sales-tool #shareCard.style-gradient{
+    width:400px;
+    padding:38px 30px;
+    background: linear-gradient(155deg, #ff5f45 0%, #ea3e6c 32%, #b3339c 62%, #5b3ec8 100%);
+    color:#fff8ef;
+    text-align:center;
+    border:none;
+    border-radius:22px;
+    position:relative;
+    overflow:hidden;
+    box-shadow: 0 30px 60px -18px rgba(146,40,90,.55), 0 8px 24px -8px rgba(91,62,200,.4);
+  }
+  .aasan-sales-tool #shareCard.style-gradient::before{
+    content:"";
+    position:absolute; top:-70px; left:-40px; width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,255,255,.28) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .aasan-sales-tool #shareCard.style-gradient::after{
+    content:"";
+    position:absolute; bottom:-90px; right:-60px; width:240px; height:240px; border-radius:50%;
+    background: radial-gradient(circle, rgba(255,255,255,.18) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-branch{
+    position:relative;
+    font-family:'Fraunces',serif;
+    font-size:1.6rem;
+    text-shadow:0 2px 12px rgba(0,0,0,.15);
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-date{
+    position:relative;
+    font-size:.85rem;
+    opacity:.92;
+    margin-bottom:24px;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-heading{
+    position:relative;
+    opacity:.92;
+    font-weight:600;
+    letter-spacing:.18em;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-net{
+    position:relative;
+    font-size:2.7rem;
+    font-weight:800;
+    text-shadow:0 4px 18px rgba(0,0,0,.2);
+    margin-bottom:4px;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-trans{
+    position:relative;
+    margin-bottom:22px;
+    opacity:.92;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .share-substats{
+    position:relative;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .substat{
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.28);
+    border-radius:14px;
+    padding:12px 14px;
+    box-shadow:0 8px 18px -8px rgba(0,0,0,.25);
+    align-items:center;
+    text-align:center;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .substat-label{ opacity:.9; }
+  .aasan-sales-tool #shareCard.style-gradient .substat-value{ color:#fff; font-size:1.1rem; }
+  .aasan-sales-tool #shareCard.style-gradient .share-metrics{
+    position:relative;
+    gap:12px;
+  }
+  .aasan-sales-tool #shareCard.style-gradient .metric-row{
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:16px;
+    padding:15px 18px;
+    box-shadow:0 10px 22px -10px rgba(0,0,0,.28);
+  }
+  .aasan-sales-tool #shareCard.style-gradient .metric-name{ font-weight:700; }
+  .aasan-sales-tool #shareCard.style-gradient .metric-sub{ opacity:.85; }
+  .aasan-sales-tool #shareCard.style-gradient .metric-value{ color:#fff; font-size:1.15rem; }
+
+  /* Style 4: Minimal Mono — Apple-inspired luxury minimal financial report */
+  .aasan-sales-tool #shareCard.style-mono{
+    width:400px;
+    padding:42px 36px;
+    background:#ffffff;
+    color:#0c0c0c;
+    border:1px solid #ececec;
+    border-radius:2px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-branch{
+    text-transform:uppercase;
+    letter-spacing:.14em;
+    font-weight:700;
+    font-size:1rem;
+    color:#0c0c0c;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-date{
+    font-size:.78rem;
+    letter-spacing:.03em;
+    color:#8a8a8a;
+    margin-bottom:34px;
+    padding-bottom:20px;
+    border-bottom:1px solid #ececec;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-heading{
+    color:#9a9a9a;
+    font-weight:600;
+    letter-spacing:.2em;
+    font-size:.65rem;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-net{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    font-size:2.6rem;
+    letter-spacing:-.01em;
+    color:#0c0c0c;
+    margin-bottom:6px;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-trans{
+    color:#8a8a8a;
+    font-size:.8rem;
+    margin-bottom:28px;
+    padding-bottom:26px;
+    border-bottom:1px solid #ececec;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-substats{
+    gap:0;
+    margin-bottom:28px;
+  }
+  .aasan-sales-tool #shareCard.style-mono .substat{
+    padding:0 18px 0 0;
+    border-right:1px solid #ececec;
+  }
+  .aasan-sales-tool #shareCard.style-mono .substat:last-child{ border-right:none; padding-left:18px; padding-right:0; }
+  .aasan-sales-tool #shareCard.style-mono .substat-label{
+    text-transform:uppercase; letter-spacing:.12em; font-size:.62rem; color:#9a9a9a; font-weight:600;
+  }
+  .aasan-sales-tool #shareCard.style-mono .substat-value{
+    font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:1.15rem; color:#0c0c0c;
+  }
+  .aasan-sales-tool #shareCard.style-mono .share-metrics{ gap:0; }
+  .aasan-sales-tool #shareCard.style-mono .metric-row{
+    border-bottom:1px solid #ececec;
+    padding:16px 0;
+  }
+  .aasan-sales-tool #shareCard.style-mono .metric-row:last-child{ border-bottom:none; }
+  .aasan-sales-tool #shareCard.style-mono .metric-name{
+    text-transform:uppercase; font-size:.72rem; letter-spacing:.1em; font-weight:600; color:#3a3a3a;
+  }
+  .aasan-sales-tool #shareCard.style-mono .metric-sub{ color:#a3a3a3; }
+  .aasan-sales-tool #shareCard.style-mono .metric-value{
+    font-family:'Fraunces',Georgia,serif; font-weight:600; color:#0c0c0c; font-size:1.15rem;
+  }
+
+  .aasan-sales-tool pre#waMsg{
+    font-family: var(--mono);
+    background:#111c14;
+    color:#eef6ea;
+    padding:18px;
+    border-radius:5px;
+    font-size: .95rem;
+    line-height:1.65;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .aasan-sales-tool .actions{
+    display:flex;
+    gap:10px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
+  .aasan-sales-tool .actions button.secondary{
+    background:#fff;
+    color: var(--green-dark);
+    border:1px solid var(--green-dark);
+  }
+  .aasan-sales-tool .actions button.secondary:hover{ background:#eef2e9; }
+  .aasan-sales-tool .section-label{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#6b6b5f;
+    margin: 4px 0 10px;
+  }
+  .aasan-sales-tool hr.sep{
+    border:none;
+    border-top:1px solid var(--line);
+    margin:26px 0;
+  }
+  .aasan-sales-tool .howto{
+    font-size:.88rem;
+    line-height:1.6;
+  }
+  .aasan-sales-tool .howto ol{ padding-left:20px; }
+  .aasan-sales-tool .howto li{ margin-bottom:6px; }
+  .aasan-sales-tool .footnote{
+    font-size:.75rem;
+    color:#7a7a6d;
+    margin-top:10px;
+  }
+  body{ margin:0; padding:28px 16px 60px; background:#f6f4ee; }
+</style>
+</head>
+<body>
+<div class="aasan-sales-tool">
+
+  <h2 class="tool-title">Daily Sales Segment Calculator</h2>
+  <p class="sub">Upload the Daily Sales Detail Report (CSV or Excel export) and get an accurate Dine In / Take Away / Delivery breakdown — plus a shareable summary image in 4 styles, or a plain WhatsApp text message.</p>
+
+  <div class="card">
+    <div class="row2">
+      <div>
+        <label for="branchName">Branch label</label>
+        <p class="hint">Auto-detected from the file — edit if needed</p>
+        <input type="text" id="branchName" placeholder="Insert Branch Name">
+      </div>
+      <div>
+        <label>Sale date</label>
+        <p class="hint">Auto-detected from the file — pick a different date if needed</p>
+        <div class="date-range-row">
+          <input type="date" id="fromDate">
+          <span class="date-sep">to</span>
+          <input type="date" id="toDate">
+        </div>
+      </div>
+    </div>
+
+    <label>Sales file</label>
+    <div class="dropzone" id="dropzone">
+      <p class="big">Click to choose a file, or drag it here</p>
+      <p class="small">.csv, .xlsx or .xls export of the Daily Sales Detail / Segment Wise report</p>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+      <div id="filename"></div>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="resultCard">
+    <h3>Calculated totals</h3>
+    <table class="check" id="checkTable"></table>
+
+    <p class="section-label">Shareable image — pick a style</p>
+    <div class="style-tabs" id="styleTabs">
+      <button type="button" class="style-tab" data-style="emerald">1 · Emerald Receipt</button>
+      <button type="button" class="style-tab" data-style="dark">2 · Midnight Neon</button>
+      <button type="button" class="style-tab" data-style="gradient">3 · Sunset Bold</button>
+      <button type="button" class="style-tab" data-style="mono">4 · Minimal Mono</button>
+    </div>
+
+    <div class="share-preview-wrap">
+      <div id="shareCard" class="style-emerald">
+        <p class="share-branch" id="scBranch"></p>
+        <p class="share-date" id="scDate"></p>
+        <p class="share-heading">Net Sale</p>
+        <p class="share-net" id="scNet"></p>
+        <p class="share-trans" id="scTrans"></p>
+        <div class="share-substats" id="scSubstats">
+          <div class="substat">
+            <span class="substat-label">Gross Sale</span>
+            <span class="substat-value" id="scGross"></span>
+          </div>
+          <div class="substat">
+            <span class="substat-label">Cheque Size</span>
+            <span class="substat-value" id="scCheque"></span>
+          </div>
+        </div>
+        <div class="share-metrics" id="scMetrics"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="downloadImgBtn">Download as image</button>
+    </div>
+
+    <hr class="sep">
+
+    <p class="section-label">WhatsApp text message</p>
+    <pre id="waMsg"></pre>
+    <div class="actions">
+      <button id="copyBtn">Copy message</button>
+      <button class="secondary" id="downloadTxtBtn">Download as .txt</button>
+    </div>
+  </div>
+
+  <div class="card howto">
+    <h3 class="card-heading">How to use this</h3>
+    <ol>
+      <li>Open this file by double-clicking it — it runs entirely in your browser, no install needed.</li>
+      <li>In the ERP, export the Daily Sales Detail / Segment Wise report as CSV or Excel (instead of PDF) and save it to your device.</li>
+      <li>Click the upload box and pick that CSV/Excel file. Branch and Date are filled in automatically from the file — edit them if you'd like something different.</li>
+      <li>The tool reads every row and groups it into <b>Dine In</b>, <b>Take Away</b> and <b>Delivery</b> — adding together every matching row (so if there are 2 Dine In rows, both get summed; 3 Take Away rows, all 3 get summed) — using the <b>Net Sales</b> and <b>Cheque</b> columns.</li>
+      <li>Pick one of the 4 image styles, then tap <b>Download as image</b> to save a PNG ready to share — or use <b>Copy message</b> for a plain WhatsApp text version.</li>
+    </ol>
+    <p class="footnote">Everything happens locally in your browser — the file is never uploaded anywhere.</p>
+  </div>
+
+</div>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const filenameEl = document.getElementById('filename');
+const statusEl = document.getElementById('status');
+const resultCard = document.getElementById('resultCard');
+const checkTable = document.getElementById('checkTable');
+const waMsgEl = document.getElementById('waMsg');
+const shareCard = document.getElementById('shareCard');
+const branchInput = document.getElementById('branchName');
+const fromDateInput = document.getElementById('fromDate');
+const toDateInput = document.getElementById('toDate');
+
+let lastResult = null;
+let currentStyle = 'emerald';
+
+// Defined via JS unicode escapes (plain ASCII in the source file) rather than raw
+// emoji characters, so the message text can't get mangled if the page's HTML gets
+// re-encoded when pasted through an editor (a common cause of stray "#" / ";" junk).
+const TRI_DOWN = '\u{1F53B}'; // 🔻
+const TRI_UP = '\u{1F53A}';   // 🔺
+const ARROW = '\u{27A1}\u{FE0F}'; // ➡️
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  if(e.dataTransfer.files.length){
+    fileInput.files = e.dataTransfer.files;
+    handleFile(e.dataTransfer.files[0]);
+  }
+});
+fileInput.addEventListener('change', e => {
+  if(e.target.files.length) handleFile(e.target.files[0]);
+});
+
+document.getElementById('styleTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.style-tab');
+  if(!btn) return;
+  currentStyle = btn.dataset.style;
+  document.querySelectorAll('.style-tab').forEach(b => b.classList.toggle('active', b === btn));
+  shareCard.className = 'style-' + currentStyle;
+});
+document.querySelector('.style-tab[data-style="emerald"]').classList.add('active');
+
+// re-render the message/card live if the user edits branch/date manually
+branchInput.addEventListener('input', () => { if(lastResult) renderResults(lastResult); });
+fromDateInput.addEventListener('change', () => { if(lastResult) renderResults(lastResult); });
+toDateInput.addEventListener('change', () => { if(lastResult) renderResults(lastResult); });
+
+function setStatus(msg, ok){
+  statusEl.textContent = msg;
+  statusEl.className = ok ? 'ok' : 'err';
+}
+
+function norm(s){
+  return (s===undefined || s===null) ? '' : String(s).trim().toLowerCase();
+}
+
+function toNumber(v){
+  if(v===undefined || v===null || v==='') return NaN;
+  if(typeof v === 'number') return v;
+  const cleaned = String(v).replace(/,/g,'').replace(/[^\d.\-]/g,'');
+  if(cleaned==='') return NaN;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? NaN : n;
+}
+
+function fmt(n){
+  return Math.round(n).toLocaleString('en-US');
+}
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function ordinal(n){
+  const s = ["th","st","nd","rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function toISODate(d){
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+
+function parseISODate(str){
+  if(!str) return null;
+  const parts = str.split('-').map(Number);
+  if(parts.length !== 3 || parts.some(isNaN)) return null;
+  const [y,m,d] = parts;
+  return new Date(y, m-1, d);
+}
+
+// Builds the "Day-Month-Year" style date label from two already-inclusive sale days
+// (i.e. the actual first and last day the sale covers — see processRows for how the
+// report's exclusive "To Date" 8AM cutoff gets converted into this inclusive end day).
+// Same day -> "2-August-2026". Range -> "9th to 17th August 2026".
+function formatDateRange(fromD, toD){
+  const sameDay = fromD.getFullYear() === toD.getFullYear() &&
+                   fromD.getMonth() === toD.getMonth() &&
+                   fromD.getDate() === toD.getDate();
+
+  if(sameDay){
+    return `${fromD.getDate()}-${MONTH_NAMES[fromD.getMonth()]}-${fromD.getFullYear()}`;
+  }
+  if(fromD.getMonth() === toD.getMonth() && fromD.getFullYear() === toD.getFullYear()){
+    return `${ordinal(fromD.getDate())} to ${ordinal(toD.getDate())} ${MONTH_NAMES[fromD.getMonth()]} ${fromD.getFullYear()}`;
+  }
+  return `${ordinal(fromD.getDate())} ${MONTH_NAMES[fromD.getMonth()]} to ${ordinal(toD.getDate())} ${MONTH_NAMES[toD.getMonth()]} ${toD.getFullYear()}`;
+}
+
+// Scans every cell for a branch code like "G11-ISB" and a "From Date ... To Date ..." string.
+// Returns the raw From/To Date objects (report's own exclusive cutoff) — processRows
+// converts that into the inclusive last sale day before filling the date pickers.
+function extractMeta(rows){
+  let branch = '', fromD = null, toD = null;
+  const branchPattern = /^([A-Za-z]+)\s*0*(\d+)\s*-\s*[A-Za-z]+$/;
+  const datePattern = /From\s*Date\s*:?\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{4}).*?To\s*Date\s*:?\s*(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/is;
+
+  for(const row of rows){
+    if(!row) continue;
+    for(const cell of row){
+      const text = (cell===undefined || cell===null) ? '' : String(cell);
+      const trimmed = text.trim();
+
+      if(!branch){
+        const m = trimmed.match(branchPattern);
+        if(m){
+          branch = `${m[1].toUpperCase()}-${m[2]} Branch`;
+        }
+      }
+      if(!fromD){
+        const dm = text.match(datePattern);
+        if(dm){
+          const f = new Date(+dm[3], +dm[2]-1, +dm[1]);
+          const t = new Date(+dm[6], +dm[5]-1, +dm[4]);
+          if(!isNaN(f) && !isNaN(t)){
+            fromD = f;
+            toD = t;
+          }
+        }
+      }
+    }
+    if(branch && fromD) break;
+  }
+  return {branch, fromD, toD};
+}
+
+function handleFile(file){
+  filenameEl.textContent = file.name;
+  setStatus('Reading file…', true);
+  const isCsv = /\.csv$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      let wb;
+      if(isCsv){
+        wb = XLSX.read(e.target.result, {type:'string'});
+      }else{
+        wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      }
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+      processRows(rows);
+    }catch(err){
+      console.error(err);
+      setStatus('Could not read that file. Please make sure it is a valid CSV or Excel export. (' + err.message + ')', false);
+    }
+  };
+  reader.onerror = function(){
+    setStatus('Could not read that file.', false);
+  };
+  if(isCsv){
+    reader.readAsText(file);
+  }else{
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// Some ERP exports (like the repeated-header-per-line CIS report) embed a
+// "Grand Total:" label on every row, followed by the report's own pre-calculated
+// totals in the same column order as the header (starting at Gross Sales). We read
+// that run of numbers directly rather than re-deriving it ourselves — this matters
+// most for Cheque Size, which is an average ticket value, not something safe to sum
+// across Dine In / Take Away / Delivery rows ourselves.
+function extractGrandTotals(rows){
+  let grossSaleGrand = NaN, chequeSizeGrand = NaN;
+  for(const row of rows){
+    if(!row) continue;
+    const idx = row.findIndex(c => /^grand\s*total\s*:?$/i.test(norm(c)));
+    if(idx === -1) continue;
+    const vals = [];
+    for(let j = idx + 1; j < row.length; j++){
+      const n = toNumber(row[j]);
+      if(isNaN(n)) break;
+      vals.push(n);
+    }
+    if(vals.length){
+      grossSaleGrand = vals[0];
+      chequeSizeGrand = vals[vals.length - 1];
+    }
+    break;
+  }
+  return {grossSaleGrand, chequeSizeGrand};
+}
+
+function classify(label){
+  const l = norm(label);
+  if(!l) return null;
+  if(/dine/.test(l)) return 'dine';
+  if(/take/.test(l)) return 'take';
+  if(/deliver|home/.test(l)) return 'delivery';
+  return null;
+}
+
+function processRows(rows){
+  // Find the header row: the row with a cell that is exactly "Order Type".
+  // Work out the column gap from "Order Type" to "Net Sales" and to "Cheque" —
+  // that same gap holds for every data row's own Order Type value cell
+  // (DINE-IN / Home Delivery / Take Away), even when the header/totals repeat on every line.
+  let headerRowIdx = -1, netSalesOffset = null, chequeOffset = null, grossSalesOffset = null;
+  for(let i=0;i<rows.length;i++){
+    const row = rows[i];
+    const idx = row.findIndex(c => norm(c) === 'order type');
+    if(idx !== -1){
+      headerRowIdx = i;
+      const netSalesCol = row.findIndex(c => norm(c) === 'net sales');
+      const chequeCol = row.findIndex(c => norm(c) === 'cheque');
+      const grossSalesCol = row.findIndex(c => norm(c) === 'gross sales');
+      if(netSalesCol !== -1) netSalesOffset = netSalesCol - idx;
+      if(chequeCol !== -1) chequeOffset = chequeCol - idx;
+      if(grossSalesCol !== -1) grossSalesOffset = grossSalesCol - idx;
+      break;
+    }
+  }
+  if(headerRowIdx === -1 || netSalesOffset === null || chequeOffset === null){
+    setStatus('Could not find "Order Type", "Net Sales" and "Cheque" columns in this file. Please check the export format.', false);
+    return;
+  }
+
+  const buckets = {
+    dine:   {label:'Dine In',   sale:0, trans:0, rows:0},
+    take:   {label:'Take Away', sale:0, trans:0, rows:0},
+    delivery:{label:'Delivery', sale:0, trans:0, rows:0}
+  };
+  let matchedRows = 0;
+  let grossSaleSum = 0; // summed across matched rows — cross-checked against the report's own Grand Total below
+
+  rows.forEach((row, rIdx) => {
+    if(!row || row.length===0) return;
+    // Note: we deliberately do NOT skip the header row here — in some ERP exports
+    // (like the repeated-header-per-line CSV) the very same row also carries the
+    // first real data entry, so skipping it would silently drop that row.
+
+    for(let idx=0; idx<row.length; idx++){
+      const bucketKey = classify(row[idx]);
+      if(!bucketKey) continue;
+
+      const netVal = toNumber(row[idx + netSalesOffset]);
+      const transVal = toNumber(row[idx + chequeOffset]);
+      if(isNaN(netVal) || isNaN(transVal)) continue; // not a real hit at this offset, keep scanning
+
+      buckets[bucketKey].sale += netVal;
+      buckets[bucketKey].trans += transVal;
+      buckets[bucketKey].rows += 1;
+      matchedRows++;
+
+      if(grossSalesOffset !== null){
+        const grossVal = toNumber(row[idx + grossSalesOffset]);
+        if(!isNaN(grossVal)) grossSaleSum += grossVal;
+      }
+      break; // one order-type value per row is enough
+    }
+  });
+
+  if(matchedRows === 0){
+    setStatus('No Dine In / Take Away / Delivery rows were recognized. Please check the file matches the expected report layout.', false);
+    return;
+  }
+
+  const netSale = buckets.dine.sale + buckets.take.sale + buckets.delivery.sale;
+  const totalTrans = buckets.dine.trans + buckets.take.trans + buckets.delivery.trans;
+
+  const grandTotals = extractGrandTotals(rows);
+  const grossSale = !isNaN(grandTotals.grossSaleGrand) ? grandTotals.grossSaleGrand : grossSaleSum;
+  const chequeSize = !isNaN(grandTotals.chequeSizeGrand) ? grandTotals.chequeSizeGrand : (totalTrans > 0 ? netSale / totalTrans : 0);
+
+  const meta = extractMeta(rows);
+  if(meta.branch) branchInput.value = meta.branch;
+  if(meta.fromD && meta.toD){
+    const lastSaleDate = new Date(meta.toD.getTime());
+    lastSaleDate.setDate(lastSaleDate.getDate() - 1);
+    fromDateInput.value = toISODate(meta.fromD);
+    toDateInput.value = toISODate(lastSaleDate);
+  }
+
+  lastResult = {netSale, totalTrans, grossSale, chequeSize, buckets};
+  renderResults(lastResult);
+
+  let metaNote = '';
+  if(!meta.branch) metaNote += ' Branch not auto-detected — please fill it in.';
+  if(!meta.fromD) metaNote += ' Date not auto-detected — please pick it.';
+  setStatus(`Done — matched ${matchedRows} row(s): Dine In ×${buckets.dine.rows}, Take Away ×${buckets.take.rows}, Delivery ×${buckets.delivery.rows}.${metaNote}`, true);
+}
+
+function renderResults(r){
+  resultCard.style.display = 'block';
+
+  const rows = [
+    ['Net Sale (grand total)', fmt(r.netSale)],
+    ['Gross Sale (grand total)', fmt(r.grossSale)],
+    ['Cheque Size', fmt(r.chequeSize)],
+    ['Total Trans (grand total)', fmt(r.totalTrans)],
+    ['Dine In Sale', fmt(r.buckets.dine.sale)],
+    ['Dine In Transactions', fmt(r.buckets.dine.trans)],
+    ['Take Away Sale', fmt(r.buckets.take.sale)],
+    ['Take Away Transactions', fmt(r.buckets.take.trans)],
+    ['Delivery Sale', fmt(r.buckets.delivery.sale)],
+    ['Delivery Transactions', fmt(r.buckets.delivery.trans)],
+  ];
+  let html = '<thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>';
+  rows.forEach(([a,b]) => { html += `<tr><td>${a}</td><td>${b}</td></tr>`; });
+  html += '</tbody>';
+  checkTable.innerHTML = html;
+
+  const branch = branchInput.value.trim();
+  const fromVal = parseISODate(fromDateInput.value);
+  const toVal = parseISODate(toDateInput.value);
+  const date = (fromVal && toVal) ? formatDateRange(fromVal, toVal) : '';
+
+  // ---- WhatsApp text message ----
+  let msg = '';
+  if(branch) msg += `*${TRI_DOWN}${branch}${TRI_DOWN}*\n`;
+  if(date) msg += `    *${date}*\n`;
+  msg += `    *${TRI_UP} Sale${TRI_UP}*\n`;
+  msg += `*Net Sale${ARROW}${fmt(r.netSale)}*\n`;
+  msg += `*Gross Sale${ARROW}${fmt(r.grossSale)}*\n`;
+  msg += `*Cheque Size${ARROW}${fmt(r.chequeSize)}*\n`;
+  msg += `*Total Trans${ARROW}${fmt(r.totalTrans)}* \n`;
+  msg += `*Dine In Sale ${ARROW}${fmt(r.buckets.dine.sale)}* \n`;
+  msg += `*Transactions${ARROW}${fmt(r.buckets.dine.trans)}*\n`;
+  msg += `*Take Away Sale ${ARROW}${fmt(r.buckets.take.sale)}*\n`;
+  msg += `*Take Away Transaction ${ARROW}${fmt(r.buckets.take.trans)}* \n`;
+  msg += `*Delivery Sale${ARROW}${fmt(r.buckets.delivery.sale)}* \n`;
+  msg += `*Delivery Transaction ${ARROW}${fmt(r.buckets.delivery.trans)}*`;
+
+  waMsgEl.textContent = msg;
+
+  // ---- shareable image card ----
+  document.getElementById('scBranch').textContent = branch || 'Sales Summary';
+  document.getElementById('scDate').textContent = date;
+  document.getElementById('scNet').textContent = fmt(r.netSale);
+  document.getElementById('scTrans').textContent = `Total Transactions: ${fmt(r.totalTrans)}`;
+  document.getElementById('scGross').textContent = fmt(r.grossSale);
+  document.getElementById('scCheque').textContent = fmt(r.chequeSize);
+
+  const metricsHtml = [
+    ['Dine In', r.buckets.dine],
+    ['Take Away', r.buckets.take],
+    ['Delivery', r.buckets.delivery]
+  ].map(([name, b]) => `
+    <div class="metric-row">
+      <span class="metric-name">${name}<span class="metric-sub">${fmt(b.trans)} transactions</span></span>
+      <span class="metric-value">${fmt(b.sale)}</span>
+    </div>
+  `).join('');
+  document.getElementById('scMetrics').innerHTML = metricsHtml;
+
+  document.getElementById('copyBtn').onclick = function(){
+    navigator.clipboard.writeText(msg).then(()=>{
+      this.textContent = 'Copied!';
+      setTimeout(()=>{ this.textContent = 'Copy message'; }, 1500);
+    });
+  };
+  document.getElementById('downloadTxtBtn').onclick = function(){
+    const blob = new Blob([msg], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sales_summary.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  document.getElementById('downloadImgBtn').onclick = function(){
+    const btn = this;
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Rendering…';
+    html2canvas(shareCard, {scale:2, backgroundColor:null, useCORS:true}).then(canvas => {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sales_summary_${currentStyle}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.disabled = false;
+        btn.textContent = originalText;
+      });
+    }).catch(err => {
+      console.error(err);
+      btn.disabled = false;
+      btn.textContent = originalText;
+      setStatus('Could not generate the image. Please try again.', false);
+    });
+  };
+}
+</script>
+</body>
+</html>
