@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manager Walk & Deposit Generator</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
+}
+
+body{
+background:#f4f7fb;
+padding:30px;
+color:#222;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.card{
+background:white;
+padding:25px;
+margin-bottom:25px;
+border-radius:15px;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+h2{
+margin-bottom:20px;
+color:#174ea6;
+}
+
+label{
+display:block;
+margin-top:15px;
+margin-bottom:6px;
+font-weight:600;
+}
+
+input,select{
+width:100%;
+padding:12px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:15px;
+}
+
+button{
+margin-top:20px;
+padding:13px 20px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+background:#174ea6;
+color:white;
+font-size:16px;
+font-weight:bold;
+}
+
+button:hover{
+background:#123d82;
+}
+
+.output{
+margin-top:20px;
+background:#eef4ff;
+padding:18px;
+border-radius:10px;
+white-space:pre-wrap;
+font-size:18px;
+font-weight:bold;
+line-height:1.7;
+}
+
+.copy{
+background:#16a34a;
+margin-left:10px;
+}
+
+.copy:hover{
+background:#12843c;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<div class="card">
+
+<h2>✅ Manager Walk Generator</h2>
+<label>Branch Name</label>
+<input id="branch1">
+<label>Shift</label>
+<select id="shift">
+<option>Morning</option>
+<option>Evening</option>
+</select>
+
+<label>Date</label>
+<input type="date" id="date1">
+
+<button onclick="generateWalk()">Generate</button>
+<button class="copy" onclick="copyWalk()">Copy</button>
+
+<div id="walkOutput" class="output"></div>
+
+</div>
+
+<div class="card">
+
+<h2>💰 Deposit Report Generator</h2>
+
+<label>Branch Name</label>
+<input id="branch2">
+
+<label>Vendor</label>
+<input id="vendor">
+
+<label>Sale Amount</label>
+<input id="sale">
+
+<label>Deposited Amount</label>
+<input id="deposit">
+
+<button onclick="generateDeposit()">Generate</button>
+<button class="copy" onclick="copyDeposit()">Copy</button>
+
+<div id="depositOutput" class="output"></div>
+
+</div>
+
+</div>
+
+<script>
+
+document.getElementById("date1").valueAsDate=new Date();
+
+function formatDate(value){
+
+let d=new Date(value);
+
+return d.toLocaleDateString("en-GB",{
+day:"numeric",
+month:"long",
+year:"numeric"
+});
+
+}
+
+function generateWalk(){
+
+let branch=document.getElementById("branch1").value.trim();
+
+let shift=document.getElementById("shift").value;
+
+let date=formatDate(document.getElementById("date1").value);
+
+let text=
+`*Manager Walk Done ✅*
+*${branch}*
+*${shift} Shift*
+*${date}*`;
+
+document.getElementById("walkOutput").textContent=text;
+
+}
+
+function copyWalk(){
+
+navigator.clipboard.writeText(
+document.getElementById("walkOutput").textContent
+);
+
+alert("Copied!");
+
+}
+
+function generateDeposit(){
+
+let branch=document.getElementById("branch2").value.trim();
+
+let vendor=document.getElementById("vendor").value.trim();
+
+let sale=document.getElementById("sale").value.trim();
+
+let dep=document.getElementById("deposit").value.trim();
+
+let text=
+`*${branch}*
+*Deposit Done ✅*
+*Vendor:* ${vendor}
+*Sale Amount:* ${sale}
+*Deposited Amount:* ${dep}`;
+
+document.getElementById("depositOutput").textContent=text;
+
+}
+
+function copyDeposit(){
+
+navigator.clipboard.writeText(
+document.getElementById("depositOutput").textContent
+);
+
+alert("Copied!");
+
+}
+
+</script>
+
+</body>
+</html>
