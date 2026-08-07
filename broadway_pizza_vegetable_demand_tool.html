@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Broadway Pizza Vegetable Demand Tool</title>
+<style>
+  /* ===== Design tokens ===== */
+  :root{
+    --green-900:#0f4a2e;
+    --green-700:#178a4c;
+    --green-600:#1ea25b;
+    --green-100:#e6f6ec;
+    --green-50:#f4fbf6;
+    --ink:#12261c;
+    --ink-soft:#5d6b62;
+    --line:#dfe8e2;
+    --white:#ffffff;
+    --danger:#c0392b;
+    --shadow:0 12px 32px rgba(15,74,46,.10);
+    --shadow-sm:0 2px 8px rgba(15,74,46,.08);
+    --radius:14px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    background:
+      radial-gradient(circle at 10% -10%, var(--green-100), transparent 45%),
+      radial-gradient(circle at 100% 0%, #eafcf1, transparent 40%),
+      var(--green-50);
+    color:var(--ink);
+    padding:32px 16px 60px;
+  }
+
+  .app{
+    max-width:560px;
+    margin:0 auto;
+  }
+
+  /* ===== Header ===== */
+  .app-header{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .app-header .logo-badge{
+    width:56px; height:56px;
+    margin:0 auto 14px;
+    border-radius:16px;
+    background:linear-gradient(145deg,var(--green-600),var(--green-900));
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.6rem;
+    box-shadow:var(--shadow);
+  }
+  .app-header h1{
+    font-size:1.35rem;
+    margin:0 0 6px;
+    color:var(--green-900);
+    letter-spacing:-.01em;
+  }
+  .app-header p{
+    margin:0;
+    font-size:.85rem;
+    color:var(--ink-soft);
+  }
+
+  /* ===== Card ===== */
+  .card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:18px;
+    box-shadow:var(--shadow-sm);
+  }
+  .card h2{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--green-700);
+    margin:0 0 16px;
+    font-weight:700;
+  }
+
+  /* ===== Searchable branch combobox ===== */
+  .combobox{ position:relative; }
+  .combobox input.combo-input{
+    width:100%;
+    padding:13px 14px;
+    font-size:.98rem;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    background:var(--white);
+    color:var(--ink);
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .combobox input.combo-input:focus{
+    border-color:var(--green-600);
+    box-shadow:0 0 0 4px rgba(30,162,91,.14);
+  }
+  .combo-list{
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0; right:0;
+    max-height:260px;
+    overflow-y:auto;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+    z-index:20;
+    display:none;
+  }
+  .combo-list.open{ display:block; }
+  .combo-group-label{
+    padding:9px 14px 5px;
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-soft);
+    font-weight:700;
+  }
+  .combo-option{
+    padding:10px 14px;
+    font-size:.92rem;
+    cursor:pointer;
+    display:flex; align-items:center; gap:8px;
+  }
+  .combo-option:hover, .combo-option.active{
+    background:var(--green-100);
+  }
+  .combo-option.custom-option{
+    border-top:1px solid var(--line);
+    color:var(--green-700);
+    font-weight:600;
+  }
+  .combo-empty{
+    padding:14px;
+    font-size:.85rem;
+    color:var(--ink-soft);
+    text-align:center;
+  }
+
+  #customBranchWrap{
+    margin-top:12px;
+    display:none;
+  }
+  #customBranchWrap.show{ display:block; }
+  #customBranchInput{
+    width:100%;
+    padding:12px 14px;
+    font-size:.95rem;
+    border:1.5px dashed var(--green-600);
+    border-radius:10px;
+    background:var(--green-50);
+    outline:none;
+  }
+  #customBranchHint{
+    font-size:.74rem;
+    color:var(--ink-soft);
+    margin:6px 2px 0;
+  }
+
+  /* ===== Vegetable grid ===== */
+  .veg-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .veg-field{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 12px 10px;
+    background:var(--green-50);
+  }
+  .veg-field label{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:.84rem;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+  .veg-field .emoji{ font-size:1.05rem; }
+  .veg-field .qty-row{
+    display:flex;
+    align-items:center;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .veg-field input[type=number]{
+    flex:1;
+    width:100%;
+    border:none;
+    outline:none;
+    padding:9px 10px;
+    font-size:.95rem;
+    font-weight:600;
+    color:var(--green-900);
+    background:transparent;
+    -moz-appearance:textfield;
+  }
+  .veg-field input[type=number]::-webkit-outer-spin-button,
+  .veg-field input[type=number]::-webkit-inner-spin-button{
+    -webkit-appearance:none; margin:0;
+  }
+  .veg-field .unit-tag{
+    font-size:.72rem;
+    font-weight:700;
+    color:var(--green-700);
+    background:var(--green-100);
+    padding:4px 8px;
+    border-radius:6px;
+    margin-right:6px;
+  }
+
+  @media(max-width:420px){
+    .veg-grid{ grid-template-columns:1fr; }
+  }
+
+  /* ===== Buttons ===== */
+  .btn-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:4px;
+  }
+  button{
+    font-family:inherit;
+    font-size:.9rem;
+    font-weight:600;
+    border-radius:10px;
+    padding:12px 18px;
+    border:none;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    transition:transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  button:active{ transform:translateY(1px); }
+
+  .btn-primary{
+    background:linear-gradient(145deg,var(--green-600),var(--green-900));
+    color:#fff;
+    box-shadow:0 8px 20px rgba(15,74,46,.22);
+    flex:1 1 100%;
+    justify-content:center;
+    padding:14px 18px;
+    font-size:.95rem;
+  }
+  .btn-primary:hover{ box-shadow:0 10px 24px rgba(15,74,46,.3); }
+
+  .btn-secondary{
+    background:var(--white);
+    color:var(--green-900);
+    border:1.5px solid var(--line);
+    flex:1;
+    justify-content:center;
+  }
+  .btn-secondary:hover{ border-color:var(--green-600); background:var(--green-50); }
+
+  .btn-whatsapp{
+    background:#e9f9ee;
+    color:#1f7a44;
+    border:1.5px solid #bfe9cc;
+    flex:1;
+    justify-content:center;
+  }
+  .btn-whatsapp:hover{ background:#dcf5e4; }
+
+  .btn-clear{
+    background:#fff;
+    color:var(--danger);
+    border:1.5px solid #f3d3ce;
+    flex:1;
+    justify-content:center;
+  }
+  .btn-clear:hover{ background:#fdf1ef; }
+
+  /* ===== Output ===== */
+  #outputArea{
+    width:100%;
+    min-height:190px;
+    resize:vertical;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+    font-family:"Courier New", Courier, monospace;
+    font-size:.92rem;
+    line-height:1.7;
+    color:var(--ink);
+    background:var(--green-50);
+    outline:none;
+    margin-bottom:14px;
+  }
+  #outputArea:focus{ border-color:var(--green-600); }
+
+  /* ===== Toast ===== */
+  #toast{
+    position:fixed;
+    left:50%;
+    bottom:26px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--green-900);
+    color:#fff;
+    padding:11px 20px;
+    border-radius:999px;
+    font-size:.85rem;
+    font-weight:600;
+    box-shadow:0 10px 26px rgba(0,0,0,.25);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:100;
+  }
+  #toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+
+  .footnote{
+    text-align:center;
+    font-size:.72rem;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="logo-badge">🍕</div>
+    <h1>Broadway Pizza Vegetable Demand Tool</h1>
+    <p>Select a branch, enter today's vegetable demand, and share it in seconds.</p>
+  </header>
+
+  <!-- ===== Branch Selection ===== -->
+  <section class="card">
+    <h2>Branch</h2>
+    <div class="combobox" id="branchCombobox">
+      <input
+        type="text"
+        id="branchInput"
+        class="combo-input"
+        placeholder="Search or select a branch..."
+        autocomplete="off"
+      >
+      <div class="combo-list" id="branchList"></div>
+    </div>
+
+    <div id="customBranchWrap">
+      <input type="text" id="customBranchInput" placeholder="Type your branch name...">
+      <p id="customBranchHint">We'll automatically add "Branch" to the end if it's missing.</p>
+    </div>
+  </section>
+
+  <!-- ===== Vegetable Inputs ===== -->
+  <section class="card">
+    <h2>Vegetable Demand (KG)</h2>
+    <div class="veg-grid" id="vegGrid"></div>
+  </section>
+
+  <!-- ===== Actions ===== -->
+  <section class="card">
+    <div class="btn-row">
+      <button class="btn-primary" id="generateBtn">✅ Generate Demand</button>
+    </div>
+
+    <label for="outputArea" style="display:block; font-size:.78rem; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin:18px 0 8px;">Output</label>
+    <textarea id="outputArea" placeholder="Your generated demand list will appear here..."></textarea>
+
+    <div class="btn-row">
+      <button class="btn-secondary" id="copyBtn">📋 Copy Output</button>
+      <button class="btn-whatsapp" id="whatsappBtn">🟢 Share on WhatsApp</button>
+      <button class="btn-clear" id="clearBtn">🗑️ Clear All</button>
+    </div>
+  </section>
+
+  <p class="footnote">Everything runs locally in your browser — nothing is uploaded anywhere.</p>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* =========================================================
+   Broadway Pizza Vegetable Demand Tool
+   Single-file, vanilla JS, no dependencies.
+   ========================================================= */
+
+// ---- Branch data (compiled from public directory listings;
+// use "Custom Branch" for anything not listed) ----
+const BRANCHES = {
+  "Islamabad": [
+    "G-11",
+    "F-8 Centaurus Mall",
+    "F-7 Markaz",
+    "Super Market F-6",
+    "DHA Phase 2",
+    "Multi Garden B-17"
+  ],
+  "Rawalpindi": [
+    "Saddar",
+    "Satellite Town",
+    "Bahria Town Box Park",
+    "Bahria Spring North Phase 7",
+    "PWD Road",
+    "Rafay Mall Westridge"
+  ]
+};
+const CUSTOM_VALUE = "__custom__";
+
+// ---- Vegetable definitions ----
+const VEGETABLES = [
+  { key:"capsicum",    label:"Capsicum",    emoji:"🫑" },
+  { key:"onion",       label:"Onion",       emoji:"🧅" },
+  { key:"tomato",      label:"Tomato",      emoji:"🍅" },
+  { key:"cucumber",    label:"Cucumber",    emoji:"🥒" },
+  { key:"greenOnion",  label:"Green Onion", emoji:"🌱" },
+  { key:"iceberg",     label:"Iceberg",     emoji:"🥬" },
+  { key:"coriander",   label:"Coriander",   emoji:"🌿" }
+];
+
+// ============ Branch combobox ============
+const branchInput = document.getElementById('branchInput');
+const branchList = document.getElementById('branchList');
+const customWrap = document.getElementById('customBranchWrap');
+const customInput = document.getElementById('customBranchInput');
+
+let selectedBranchValue = "";   // the raw branch name chosen (without "Branch" suffix), or CUSTOM_VALUE
+let selectedBranchLabel = "";   // display text shown in the input
+
+function buildBranchOptions(filterText){
+  const filter = (filterText || "").trim().toLowerCase();
+  branchList.innerHTML = "";
+  let anyMatch = false;
+
+  Object.entries(BRANCHES).forEach(([city, names]) => {
+    const matches = names.filter(n => n.toLowerCase().includes(filter));
+    if(matches.length === 0) return;
+    anyMatch = true;
+
+    const groupLabel = document.createElement('div');
+    groupLabel.className = 'combo-group-label';
+    groupLabel.textContent = city;
+    branchList.appendChild(groupLabel);
+
+    matches.forEach(name => {
+      const opt = document.createElement('div');
+      opt.className = 'combo-option';
+      opt.textContent = name;
+      opt.addEventListener('click', () => selectBranch(name, name));
+      branchList.appendChild(opt);
+    });
+  });
+
+  if(!anyMatch){
+    const empty = document.createElement('div');
+    empty.className = 'combo-empty';
+    empty.textContent = 'No matching branch found';
+    branchList.appendChild(empty);
+  }
+
+  // Always offer Custom Branch at the bottom
+  const customOpt = document.createElement('div');
+  customOpt.className = 'combo-option custom-option';
+  customOpt.textContent = '+ Custom Branch (type your own)';
+  customOpt.addEventListener('click', () => selectBranch(CUSTOM_VALUE, ''));
+  branchList.appendChild(customOpt);
+}
+
+function selectBranch(value, label){
+  selectedBranchValue = value;
+  if(value === CUSTOM_VALUE){
+    selectedBranchLabel = "";
+    branchInput.value = "";
+    branchInput.placeholder = "Custom branch selected — type it below";
+    customWrap.classList.add('show');
+    customInput.focus();
+  }else{
+    selectedBranchLabel = label;
+    branchInput.value = label;
+    customWrap.classList.remove('show');
+  }
+  closeBranchList();
+}
+
+function openBranchList(){
+  buildBranchOptions(branchInput.value);
+  branchList.classList.add('open');
+}
+function closeBranchList(){
+  branchList.classList.remove('open');
+}
+
+branchInput.addEventListener('focus', openBranchList);
+branchInput.addEventListener('input', () => {
+  // typing manually clears a previous exact selection until they pick again
+  selectedBranchValue = "";
+  openBranchList();
+});
+document.addEventListener('click', (e) => {
+  if(!document.getElementById('branchCombobox').contains(e.target)){
+    closeBranchList();
+  }
+});
+
+// ============ Vegetable inputs ============
+const vegGrid = document.getElementById('vegGrid');
+
+VEGETABLES.forEach(v => {
+  const field = document.createElement('div');
+  field.className = 'veg-field';
+  field.innerHTML = `
+    <label for="veg-${v.key}"><span class="emoji">${v.emoji}</span> ${v.label}</label>
+    <div class="qty-row">
+      <input type="number" id="veg-${v.key}" min="0" step="0.1" value="0" inputmode="decimal">
+      <span class="unit-tag">KG</span>
+    </div>
+  `;
+  vegGrid.appendChild(field);
+});
+
+// Prevent negative values from being typed/pasted
+vegGrid.addEventListener('input', (e) => {
+  if(e.target.matches('input[type=number]')){
+    if(e.target.value !== "" && Number(e.target.value) < 0){
+      e.target.value = 0;
+    }
+  }
+});
+
+// ============ Generate / Copy / WhatsApp / Clear ============
+const outputArea = document.getElementById('outputArea');
+
+function resolveBranchName(){
+  let raw = "";
+  if(selectedBranchValue === CUSTOM_VALUE){
+    raw = customInput.value.trim();
+  }else{
+    raw = branchInput.value.trim();
+  }
+  if(!raw) return "";
+
+  // Append " Branch" unless it already ends with "Branch" (case-insensitive)
+  const endsWithBranch = /\bbranch$/i.test(raw);
+  return endsWithBranch ? raw : `${raw} Branch`;
+}
+
+function formatQty(val){
+  // Display exactly as entered — strip only a redundant trailing ".0" pattern
+  // that a decimal step control can sometimes leave (e.g. "3.0" -> "3"),
+  // while preserving genuine decimals like "0.5".
+  const num = Number(val);
+  if(Number.isNaN(num)) return "0";
+  return num % 1 === 0 ? String(num) : String(num);
+}
+
+function generateDemand(){
+  const branchName = resolveBranchName();
+  if(!branchName){
+    showToast("Please select or type a branch first");
+    branchInput.focus();
+    return;
+  }
+
+  const lines = [`*${branchName}*`];
+  VEGETABLES.forEach(v => {
+    const input = document.getElementById(`veg-${v.key}`);
+    const qty = formatQty(input.value === "" ? "0" : input.value);
+    lines.push(`*${v.label} ${v.emoji}${qty}KG*`);
+  });
+
+  outputArea.value = lines.join('\n');
+  showToast("Demand list generated");
+}
+
+function copyOutput(){
+  if(!outputArea.value.trim()){
+    showToast("Nothing to copy yet — generate first");
+    return;
+  }
+  navigator.clipboard.writeText(outputArea.value).then(() => {
+    showToast("Copied to clipboard");
+  }).catch(() => {
+    // Fallback for older browsers
+    outputArea.select();
+    document.execCommand('copy');
+    showToast("Copied to clipboard");
+  });
+}
+
+function shareOnWhatsApp(){
+  if(!outputArea.value.trim()){
+    showToast("Nothing to share yet — generate first");
+    return;
+  }
+  const encoded = encodeURIComponent(outputArea.value);
+  window.open(`https://wa.me/?text=${encoded}`, '_blank');
+}
+
+function clearAll(){
+  branchInput.value = "";
+  branchInput.placeholder = "Search or select a branch...";
+  customInput.value = "";
+  customWrap.classList.remove('show');
+  selectedBranchValue = "";
+  selectedBranchLabel = "";
+  VEGETABLES.forEach(v => {
+    document.getElementById(`veg-${v.key}`).value = "0";
+  });
+  outputArea.value = "";
+  showToast("Cleared");
+}
+
+document.getElementById('generateBtn').addEventListener('click', generateDemand);
+document.getElementById('copyBtn').addEventListener('click', copyOutput);
+document.getElementById('whatsappBtn').addEventListener('click', shareOnWhatsApp);
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+
+// ============ Toast notification ============
+let toastTimer = null;
+function showToast(message){
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+</script>
+
+</body>
+</html>
