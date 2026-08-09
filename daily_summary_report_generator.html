@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Summary Report Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#1c2b22;
+    --paper:#f6f4ee;
+    --line:#dbd5c2;
+    --green:#3f6b4a;
+    --green-dark:#2b4a34;
+    --gold:#c8912b;
+    --mono: "Space Mono", "Courier New", Courier, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Inter',-apple-system,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    padding:28px 16px 70px;
+  }
+  .wrap{ max-width:780px; margin:0 auto; }
+  h2.tool-title{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:1.6rem;
+    margin:0 0 4px;
+    color:var(--green-dark);
+  }
+  p.sub{ font-size:.85rem; color:#5a5a4f; margin:0 0 10px; }
+  .notice{
+    background:#fbf3e2; border:1px solid #ecdcb0; border-radius:6px;
+    padding:12px 14px; font-size:.8rem; color:#6b5a2a; margin-bottom:22px; line-height:1.55;
+  }
+  .card{
+    background:#fffdf8;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .card h3{
+    font-family:'Fraunces',Georgia,serif;
+    font-size:1.05rem;
+    color:var(--green-dark);
+    margin:0 0 4px;
+  }
+  .card .card-hint{ font-size:.76rem; color:#8a8a7c; margin:0 0 16px; }
+  label.field-label{
+    display:block; font-size:.76rem; text-transform:uppercase; letter-spacing:.05em;
+    color:#6b6b5f; margin:14px 0 6px;
+  }
+  label.field-label:first-of-type{ margin-top:0; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .row4{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  input[type=text], input[type=date], input[type=number]{
+    width:100%; padding:10px 11px; border:1px solid var(--line); border-radius:4px;
+    font-family:inherit; font-size:.92rem; background:#fff; color:var(--ink);
+  }
+  input:focus{ outline:none; border-color:var(--green); }
+  .auto-field input{ background:#f4fbf6; border-color:#cfe6d6; }
+  .auto-tag{
+    display:inline-block; font-size:.62rem; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--green-dark); background:#e3f2e6; padding:2px 7px; border-radius:999px; margin-left:6px;
+  }
+
+  /* dropzone */
+  .dropzone{
+    border:2px dashed var(--green); border-radius:6px; padding:26px 16px;
+    text-align:center; cursor:pointer; background:#eef2e9; transition:background .15s ease;
+  }
+  .dropzone:hover{ background:#e4ead9; }
+  .dropzone.drag{ background:#dce6cf; }
+  .dropzone p{ margin:4px 0; }
+  .dropzone .big{ font-weight:bold; color:var(--green-dark); }
+  .dropzone .small{ font-size:.78rem; color:#6b6b5f; }
+  input[type=file]{ display:none; }
+  #filename{ margin-top:10px; font-size:.85rem; color:var(--green-dark); font-weight:bold; }
+  #status{ margin-top:12px; font-size:.85rem; }
+  #status.err{ color:#a3312a; }
+  #status.ok{ color:var(--green-dark); }
+
+  /* auto-extracted read-only summary */
+  table.check{
+    width:100%; border-collapse:collapse; font-size:.85rem; margin-top:4px;
+  }
+  table.check th, table.check td{
+    border:1px solid var(--line); padding:7px 9px; text-align:right;
+  }
+  table.check th:first-child, table.check td:first-child{ text-align:left; }
+  table.check thead{ background:#eef2e9; }
+  #extractedSection{ display:none; }
+
+  .staff-role{
+    border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:10px; background:#fff;
+  }
+  .staff-role .role-name{ font-size:.85rem; font-weight:700; margin-bottom:8px; }
+  .staff-role .shift-row{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .staff-role label{ font-size:.7rem; color:#8a8a7c; text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:4px; }
+
+  button{
+    background:var(--green-dark); color:#fff; border:none; padding:11px 18px;
+    border-radius:4px; font-size:.9rem; cursor:pointer; letter-spacing:.02em;
+  }
+  button:hover{ background:#213b28; }
+  button.secondary{ background:#fff; color:var(--green-dark); border:1px solid var(--green-dark); }
+  button.secondary:hover{ background:#eef2e9; }
+  .actions{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+
+  pre#outputArea{
+    font-family:var(--mono); background:#111c14; color:#eef6ea; padding:18px; border-radius:5px;
+    font-size:.88rem; line-height:1.7; white-space:pre-wrap; word-break:break-word;
+    min-height:120px; margin:0 0 4px;
+  }
+  #resultCard{ display:none; }
+  .footnote{ font-size:.75rem; color:#7a7a6d; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h2 class="tool-title">Daily Summary Report Generator</h2>
+  <p class="sub">Uses the same file-reading and extraction engine as the Daily Sales Segment Calculator, presented as a concise WhatsApp-ready management summary.</p>
+
+  <div class="notice">
+    <b>Before you rely on this:</b> Gross Sales, Discount, Net Sales, and the Dine-In / Delivery / Takeaway breakdown use the exact same proven column-detection technique as the Sales Segment Calculator, tested against your real export. Food Cost, Refunds, Dispatch Time, Dine-In Feedback, and Delivery Complaints are <b>not part of that report's file structure</b> — I've never seen a sample file containing them, so this tool does a best-effort search for those labels and pre-fills them if found, but every one of those fields stays fully editable so you can correct or fill it in by hand. Send me a real sample of that fuller report and I'll calibrate exact extraction for those fields too.
+  </div>
+
+  <!-- ===== Report Info (manual) ===== -->
+  <div class="card">
+    <h3>Report Information</h3>
+    <p class="card-hint">Branch auto-fills from the uploaded file below (still editable) — everything else here is typed in manually.</p>
+    <div class="row2">
+      <div>
+        <label class="field-label" for="branchInput">Branch</label>
+        <input type="text" id="branchInput" placeholder="Insert Branch Name">
+      </div>
+      <div>
+        <label class="field-label" for="rgmInput">RGM</label>
+        <input type="text" id="rgmInput" placeholder="Type a name (optional)">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label class="field-label" for="morningManagerInput">Morning Manager</label>
+        <input type="text" id="morningManagerInput" placeholder="Type a name (optional)">
+      </div>
+      <div>
+        <label class="field-label" for="nightManagerInput">Night Manager</label>
+        <input type="text" id="nightManagerInput" placeholder="Type a name (optional)">
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <label class="field-label" for="dayInput">Day</label>
+        <input type="text" id="dayInput" placeholder="e.g. Wednesday (optional)">
+      </div>
+      <div>
+        <label class="field-label" for="dateInput">Date</label>
+        <input type="date" id="dateInput">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Upload ===== -->
+  <div class="card">
+    <h3>Sales File</h3>
+    <p class="card-hint">.csv, .xlsx or .xls — same export type used by the Sales Segment Calculator.</p>
+    <div class="dropzone" id="dropzone">
+      <p class="big">Click to choose a file, or drag it here</p>
+      <p class="small">Daily Sales Detail / Segment Wise report</p>
+      <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+      <div id="filename"></div>
+    </div>
+    <div id="status"></div>
+  </div>
+
+  <!-- ===== Auto-extracted (confident, read-only) ===== -->
+  <div class="card" id="extractedSection">
+    <h3>Extracted From File</h3>
+    <p class="card-hint">Pulled automatically using the same technique as the Sales Segment Calculator — not editable, since this comes straight from your file.</p>
+    <table class="check" id="extractedTable"></table>
+  </div>
+
+  <!-- ===== Best-effort / editable operational fields ===== -->
+  <div class="card">
+    <h3>Food Cost, Refunds &amp; Operations</h3>
+    <p class="card-hint">Auto-filled if found in the uploaded file (marked <span class="auto-tag">Auto</span>) — always editable. Leave blank to omit from the report.</p>
+
+    <div class="row2">
+      <div class="auto-field">
+        <label class="field-label" for="foodCostIdeal">Ideal Food Cost (%)</label>
+        <input type="text" id="foodCostIdeal" placeholder="Optional">
+      </div>
+      <div class="auto-field">
+        <label class="field-label" for="foodCostActual">Actual Food Cost (%)</label>
+        <input type="text" id="foodCostActual" placeholder="Optional">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="auto-field">
+        <label class="field-label" for="unmadeRefundTrans">Unmade Refund Transactions</label>
+        <input type="text" id="unmadeRefundTrans" placeholder="Optional">
+      </div>
+      <div class="auto-field">
+        <label class="field-label" for="unmadeRefundAmount">Unmade Refund Amount</label>
+        <input type="text" id="unmadeRefundAmount" placeholder="Optional">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="auto-field">
+        <label class="field-label" for="madeRefundTrans">Made Refund Transactions</label>
+        <input type="text" id="madeRefundTrans" placeholder="Optional">
+      </div>
+      <div class="auto-field">
+        <label class="field-label" for="madeRefundAmount">Made Refund Amount</label>
+        <input type="text" id="madeRefundAmount" placeholder="Optional">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="auto-field">
+        <label class="field-label" for="dispatchTime">Dispatch Time</label>
+        <input type="text" id="dispatchTime" placeholder="Optional, e.g. 27:06">
+      </div>
+      <div class="auto-field">
+        <label class="field-label" for="dineInFeedback">Dine-In Feedback (%)</label>
+        <input type="text" id="dineInFeedback" placeholder="Optional">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="auto-field">
+        <label class="field-label" for="deliveryComplaints">Delivery Complaints</label>
+        <input type="text" id="deliveryComplaints" placeholder="Optional">
+      </div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- ===== Staff Deployment (manual) ===== -->
+  <div class="card">
+    <h3>Staff Deployment</h3>
+    <p class="card-hint">All optional. A role is only included in the report if at least one shift number is entered for it.</p>
+
+    <div class="staff-role">
+      <div class="role-name">Kitchen Assistants</div>
+      <div class="shift-row">
+        <div><label>Morning</label><input type="number" id="kaMorning" min="0" placeholder="—"></div>
+        <div><label>Night</label><input type="number" id="kaNight" min="0" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="staff-role">
+      <div class="role-name">Delivery Assistants</div>
+      <div class="shift-row">
+        <div><label>Morning</label><input type="number" id="daMorning" min="0" placeholder="—"></div>
+        <div><label>Night</label><input type="number" id="daNight" min="0" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="staff-role">
+      <div class="role-name">Dine-In Assistants</div>
+      <div class="shift-row">
+        <div><label>Morning</label><input type="number" id="diaMorning" min="0" placeholder="—"></div>
+        <div><label>Night</label><input type="number" id="diaNight" min="0" placeholder="—"></div>
+      </div>
+    </div>
+    <div class="staff-role">
+      <div class="role-name">Cashiers</div>
+      <div class="shift-row">
+        <div><label>Morning</label><input type="number" id="cashMorning" min="0" placeholder="—"></div>
+        <div><label>Night</label><input type="number" id="cashNight" min="0" placeholder="—"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Actions + Output ===== -->
+  <div class="card">
+    <div class="actions">
+      <button id="generateBtn">Generate Report</button>
+    </div>
+
+    <div id="resultCard">
+      <p class="card-hint" style="margin-top:18px;">WhatsApp-ready preview — edit directly here if needed.</p>
+      <pre id="outputArea" contenteditable="true"></pre>
+      <div class="actions">
+        <button id="copyBtn">Copy Report</button>
+        <button class="secondary" id="editBtn">Edit Details</button>
+        <button class="secondary" id="clearBtn">Clear / New Report</button>
+      </div>
+    </div>
+    <p class="footnote">Everything happens locally in your browser — nothing is uploaded anywhere.</p>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   Daily Summary Report Generator
+   Reuses the exact file-reading / column-detection / number-
+   cleaning technique proven in the Daily Sales Segment Calculator.
+   ========================================================= */
+
+// ---------- shared helpers (identical to Sales Segment Calculator) ----------
+function norm(s){
+  return (s===undefined || s===null) ? '' : String(s).trim().toLowerCase();
+}
+function toNumber(v){
+  if(v===undefined || v===null || v==='') return NaN;
+  if(typeof v === 'number') return v;
+  const cleaned = String(v).replace(/,/g,'').replace(/[^\d.\-]/g,'');
+  if(cleaned==='') return NaN;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? NaN : n;
+}
+function classify(label){
+  const l = norm(label);
+  if(!l) return null;
+  if(/dine/.test(l)) return 'dine';
+  if(/take/.test(l)) return 'take';
+  if(/deliver|home/.test(l)) return 'delivery';
+  return null;
+}
+
+// ---------- display formatters (never round source financial values) ----------
+function formatMoney(n){
+  if(n===null || isNaN(n)) return '';
+  // Whole numbers (1700, 4994.00) show no decimals; genuine decimals (1782.69)
+  // are preserved exactly as parsed — never rounded, never padded to .00.
+  const isWhole = Math.abs(n % 1) < 1e-9;
+  let numStr = isWhole ? String(Math.round(n)) : String(n);
+  const negative = numStr.startsWith('-');
+  if(negative) numStr = numStr.slice(1);
+  const [intPart, decPart] = numStr.split('.');
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const formatted = decPart ? `${withCommas}.${decPart}` : withCommas;
+  return `Rs. ${negative ? '-' : ''}${formatted}/-`;
+}
+function formatPercentRaw(n){
+  // preserves exactly the decimal precision parsed from source — no rounding, no padding
+  if(n===null || isNaN(n)) return '';
+  return String(n) + '%';
+}
+function formatDiffPercent(n){
+  if(n===null || isNaN(n)) return '';
+  const rounded = Math.round(n*100)/100;
+  const sign = rounded > 0 ? '+' : '';
+  return sign + rounded.toFixed(2) + '%';
+}
+function formatCount(n){
+  if(n===null || isNaN(n)) return '';
+  return String(Math.round(n)).padStart(2,'0');
+}
+
+// ---------- branch auto-detect (same pattern as Sales Segment Calculator) ----------
+function extractBranch(rows){
+  const branchPattern = /^([A-Za-z]+)\s*0*(\d+)\s*-\s*[A-Za-z]+$/;
+  for(const row of rows){
+    if(!row) continue;
+    for(const cell of row){
+      const trimmed = String(cell ?? '').trim();
+      const m = trimmed.match(branchPattern);
+      if(m) return `${m[1].toUpperCase()}-${m[2]} Branch`;
+    }
+  }
+  return '';
+}
+
+// ---------- best-effort generic label scanner for fields not present in the
+// known Sales Segment report structure (food cost, refunds, dispatch, feedback) ----------
+const FIELD_DEFS = [
+  { key:'foodCostIdeal',      type:'percent', exclude:null,
+    patterns:[/ideal\s*food\s*cost/i, /food\s*cost\s*ideal/i] },
+  { key:'foodCostActual',     type:'percent', exclude:null,
+    patterns:[/actual\s*food\s*cost/i, /food\s*cost\s*actual/i] },
+  { key:'unmadeRefundTrans',  type:'int', exclude:null,
+    patterns:[/un[\s-]*made\s*refund\s*trans/i] },
+  { key:'unmadeRefundAmount', type:'money', exclude:null,
+    patterns:[/un[\s-]*made\s*refund\s*amount/i] },
+  { key:'madeRefundTrans',    type:'int', exclude:/un[\s-]*made/i,
+    patterns:[/\bmade\s*refund\s*trans/i] },
+  { key:'madeRefundAmount',   type:'money', exclude:/un[\s-]*made/i,
+    patterns:[/\bmade\s*refund\s*amount/i] },
+  { key:'dispatchTime',       type:'text', exclude:null,
+    patterns:[/dispatch\s*time/i] },
+  { key:'dineInFeedback',     type:'percent', exclude:null,
+    patterns:[/dine[\s-]*in\s*feedback/i] },
+  { key:'deliveryComplaints', type:'int', exclude:null,
+    patterns:[/delivery\s*complain/i] }
+];
+
+function scanLabeledValue(rows, def){
+  for(const row of rows){
+    if(!row) continue;
+    for(let idx=0; idx<row.length; idx++){
+      const text = String(row[idx] ?? '').trim();
+      if(!text) continue;
+      if(def.exclude && def.exclude.test(text)) continue;
+      if(!def.patterns.some(p => p.test(text))) continue;
+
+      // look at the next few cells in the same row for a plausible value
+      for(let j=idx+1; j<row.length && j<idx+6; j++){
+        const raw = row[j];
+        if(def.type === 'text'){
+          const t = String(raw ?? '').trim();
+          if(/^\d{1,3}:\d{2}$/.test(t)) return t;
+        }else{
+          const n = toNumber(raw);
+          if(!isNaN(n)) return n;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// ============ Upload handling ============
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const filenameEl = document.getElementById('filename');
+const statusEl = document.getElementById('status');
+const branchInput = document.getElementById('branchInput');
+const extractedSection = document.getElementById('extractedSection');
+const extractedTable = document.getElementById('extractedTable');
+
+let extractedData = null; // holds the confidently-extracted figures once a file is processed
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  if(e.dataTransfer.files.length){
+    fileInput.files = e.dataTransfer.files;
+    handleFile(e.dataTransfer.files[0]);
+  }
+});
+fileInput.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
+
+function setStatus(msg, ok){
+  statusEl.textContent = msg;
+  statusEl.className = ok ? 'ok' : 'err';
+}
+
+function handleFile(file){
+  filenameEl.textContent = file.name;
+  setStatus('Reading file…', true);
+  const isCsv = /\.csv$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      let wb;
+      if(isCsv){
+        wb = XLSX.read(e.target.result, {type:'string'});
+      }else{
+        wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      }
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false, defval:''});
+      processRows(rows);
+    }catch(err){
+      console.error(err);
+      setStatus('Could not read that file. (' + err.message + ')', false);
+    }
+  };
+  reader.onerror = function(){ setStatus('Could not read that file.', false); };
+  if(isCsv){ reader.readAsText(file); } else { reader.readAsArrayBuffer(file); }
+}
+
+function processRows(rows){
+  // ---- same header-offset technique as the Sales Segment Calculator,
+  // extended to also capture Gross Sales and Discount (present in the
+  // same known column layout: OrderType, Gross, Delivery, Credit,
+  // Discount, POSFee, NetSales, %Till, NetSalesAfterTax, Cheque, ChequeSize) ----
+  let headerRowIdx = -1;
+  let grossOffset=null, discountOffset=null, netSalesOffset=null, chequeOffset=null;
+
+  for(let i=0;i<rows.length;i++){
+    const row = rows[i];
+    const idx = row.findIndex(c => norm(c) === 'order type');
+    if(idx !== -1){
+      headerRowIdx = i;
+      const grossCol = row.findIndex(c => norm(c) === 'gross sales');
+      const discountCol = row.findIndex(c => norm(c) === 'discount');
+      const netSalesCol = row.findIndex(c => norm(c) === 'net sales');
+      const chequeCol = row.findIndex(c => norm(c) === 'cheque');
+      if(grossCol !== -1) grossOffset = grossCol - idx;
+      if(discountCol !== -1) discountOffset = discountCol - idx;
+      if(netSalesCol !== -1) netSalesOffset = netSalesCol - idx;
+      if(chequeCol !== -1) chequeOffset = chequeCol - idx;
+      break;
+    }
+  }
+  if(headerRowIdx === -1 || netSalesOffset === null || chequeOffset === null){
+    setStatus('Could not find "Order Type", "Net Sales" and "Cheque" columns in this file. Please check the export format.', false);
+    return;
+  }
+
+  const buckets = {
+    dine:{label:'Dine-In', sale:0, trans:0, rows:0},
+    take:{label:'Takeaway', sale:0, trans:0, rows:0},
+    delivery:{label:'Delivery', sale:0, trans:0, rows:0}
+  };
+  let grossTotal = 0, discountTotal = 0;
+  let matchedRows = 0;
+
+  rows.forEach(row => {
+    if(!row || row.length===0) return;
+    for(let idx=0; idx<row.length; idx++){
+      const bucketKey = classify(row[idx]);
+      if(!bucketKey) continue;
+      const netVal = toNumber(row[idx + netSalesOffset]);
+      const transVal = toNumber(row[idx + chequeOffset]);
+      if(isNaN(netVal) || isNaN(transVal)) continue;
+
+      buckets[bucketKey].sale += netVal;
+      buckets[bucketKey].trans += transVal;
+      buckets[bucketKey].rows += 1;
+      matchedRows++;
+
+      if(grossOffset !== null){
+        const g = toNumber(row[idx + grossOffset]);
+        if(!isNaN(g)) grossTotal += g;
+      }
+      if(discountOffset !== null){
+        const d = toNumber(row[idx + discountOffset]);
+        if(!isNaN(d)) discountTotal += d;
+      }
+      break;
+    }
+  });
+
+  if(matchedRows === 0){
+    setStatus('No Dine-In / Takeaway / Delivery rows were recognized. Please check the file matches the expected report layout.', false);
+    return;
+  }
+
+  const netSaleTotal = buckets.dine.sale + buckets.take.sale + buckets.delivery.sale;
+
+  extractedData = { buckets, grossTotal, discountTotal, netSaleTotal, hasGross: grossOffset !== null, hasDiscount: discountOffset !== null };
+  renderExtracted(extractedData);
+
+  const branch = extractBranch(rows);
+  if(branch) branchInput.value = branch;
+
+  // best-effort scan for the fields not present in the known report structure
+  FIELD_DEFS.forEach(def => {
+    const val = scanLabeledValue(rows, def);
+    const el = document.getElementById(def.key);
+    if(val !== null && el && !el.value){
+      el.value = val;
+      el.closest('.auto-field')?.querySelector('.field-label')?.insertAdjacentHTML('beforeend', ' <span class="auto-tag">Auto</span>');
+    }
+  });
+
+  setStatus(`Done — matched ${matchedRows} row(s): Dine-In ×${buckets.dine.rows}, Takeaway ×${buckets.take.rows}, Delivery ×${buckets.delivery.rows}.${branch ? '' : ' Branch not auto-detected — please fill it in.'}`, true);
+}
+
+function renderExtracted(d){
+  extractedSection.style.display = 'block';
+  const rows = [];
+  if(d.hasGross) rows.push(['Gross Sales', formatMoney(d.grossTotal)]);
+  if(d.hasDiscount) rows.push(['Discount', formatMoney(d.discountTotal)]);
+  rows.push(['Net Sales', formatMoney(d.netSaleTotal)]);
+  rows.push(['Dine-In', `${formatCount(d.buckets.dine.trans)} Trans | ${formatMoney(d.buckets.dine.sale)}`]);
+  rows.push(['Delivery', `${formatCount(d.buckets.delivery.trans)} Trans | ${formatMoney(d.buckets.delivery.sale)}`]);
+  rows.push(['Takeaway', `${formatCount(d.buckets.take.trans)} Trans | ${formatMoney(d.buckets.take.sale)}`]);
+
+  let html = '<thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>';
+  rows.forEach(([a,b]) => html += `<tr><td>${a}</td><td>${b}</td></tr>`);
+  html += '</tbody>';
+  extractedTable.innerHTML = html;
+}
+
+// ============ Generate report ============
+const resultCard = document.getElementById('resultCard');
+const outputArea = document.getElementById('outputArea');
+
+function val(id){ return document.getElementById(id).value.trim(); }
+function numVal(id){
+  const raw = document.getElementById(id).value.trim();
+  if(raw === '') return null;
+  const n = toNumber(raw);
+  return isNaN(n) ? null : n;
+}
+
+function formatDateDMY(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}-${m}-${y}`;
+}
+
+function generateReport(){
+  if(!extractedData){
+    setStatus('Please upload a sales file first.', false);
+    return;
+  }
+  const branch = branchInput.value.trim() || 'Branch';
+  const branchLine = /\bbranch$/i.test(branch) ? branch : `${branch} Branch`;
+
+  const lines = [];
+  lines.push(branchLine);
+
+  const rgm = val('rgmInput');
+  const morningMgr = val('morningManagerInput');
+  const nightMgr = val('nightManagerInput');
+  const day = val('dayInput');
+  const dateVal = document.getElementById('dateInput').value;
+
+  if(rgm) lines.push(`*RGM:* ${rgm}`);
+  if(morningMgr) lines.push(`*Morning Manager:* ${morningMgr}`);
+  if(nightMgr) lines.push(`*Night Manager:* ${nightMgr}`);
+  if(day) lines.push(`*Day:* ${day}`);
+  if(dateVal) lines.push(`*Date:* ${formatDateDMY(dateVal)}`);
+
+  // ---- SALES ----
+  const salesLines = [];
+  if(extractedData.hasGross) salesLines.push(`* *Gross Sales:* ${formatMoney(extractedData.grossTotal)}`);
+  if(extractedData.hasDiscount) salesLines.push(`* *Discount:* ${formatMoney(extractedData.discountTotal)}`);
+  salesLines.push(`* *Net Sales:* ${formatMoney(extractedData.netSaleTotal)}`);
+  if(salesLines.length){
+    lines.push('', '*SALES*', '', ...salesLines);
+  }
+
+  // ---- FOOD COST ----
+  const ideal = numVal('foodCostIdeal');
+  const actual = numVal('foodCostActual');
+  const fcLines = [];
+  if(ideal !== null) fcLines.push(`* *Ideal Food Cost:* ${formatPercentRaw(ideal)}`);
+  if(actual !== null) fcLines.push(`* *Actual Food Cost:* ${formatPercentRaw(actual)}`);
+  if(ideal !== null && actual !== null) fcLines.push(`* *Difference:* ${formatDiffPercent(actual - ideal)}`);
+  if(fcLines.length){
+    lines.push('', '*FOOD COST*', '', ...fcLines);
+  }
+
+  // ---- REFUNDS ----
+  const unmadeT = numVal('unmadeRefundTrans');
+  const unmadeA = numVal('unmadeRefundAmount');
+  const madeT = numVal('madeRefundTrans');
+  const madeA = numVal('madeRefundAmount');
+  const refundLines = [];
+  if(unmadeT !== null) refundLines.push(`* *Unmade Refund Transactions:* ${formatCount(unmadeT)}`);
+  if(unmadeA !== null) refundLines.push(`* *Unmade Refund Amount:* ${formatMoney(unmadeA)}`);
+  if(madeT !== null) refundLines.push(`* *Made Refund Transactions:* ${formatCount(madeT)}`);
+  if(madeA !== null) refundLines.push(`* *Made Refund Amount:* ${formatMoney(madeA)}`);
+  if(refundLines.length){
+    lines.push('', '*REFUNDS*', '', ...refundLines);
+  }
+
+  // ---- OPERATIONS ----
+  const dispatch = val('dispatchTime');
+  const opsLines = [];
+  if(dispatch) opsLines.push(`* *Dispatch Time:* ${dispatch}`);
+  if(opsLines.length){
+    lines.push('', '*OPERATIONS*', '', ...opsLines);
+  }
+
+  // ---- SALES CHANNELS ----
+  const b = extractedData.buckets;
+  lines.push('', '*SALES CHANNELS*', '',
+    `* *Dine-In:* ${formatCount(b.dine.trans)} Transactions | ${formatMoney(b.dine.sale)}`,
+    `* *Delivery:* ${formatCount(b.delivery.trans)} Transactions | ${formatMoney(b.delivery.sale)}`,
+    `* *Takeaway:* ${formatCount(b.take.trans)} Transactions | ${formatMoney(b.take.sale)}`
+  );
+
+  // ---- CUSTOMER FEEDBACK ----
+  const feedback = numVal('dineInFeedback');
+  const complaints = numVal('deliveryComplaints');
+  const feedbackLines = [];
+  if(feedback !== null) feedbackLines.push(`* *Dine-In Feedback:* ${formatPercentRaw(feedback)}`);
+  if(complaints !== null) feedbackLines.push(`* *Delivery Complaints:* ${formatCount(complaints)}`);
+  if(feedbackLines.length){
+    lines.push('', '*CUSTOMER FEEDBACK*', '', ...feedbackLines);
+  }
+
+  // ---- STAFF DEPLOYMENT ----
+  const roles = [
+    ['Kitchen Assistants', numVal('kaMorning'), numVal('kaNight')],
+    ['Delivery Assistants', numVal('daMorning'), numVal('daNight')],
+    ['Dine-In Assistants', numVal('diaMorning'), numVal('diaNight')],
+    ['Cashiers', numVal('cashMorning'), numVal('cashNight')]
+  ];
+  const staffLines = [];
+  roles.forEach(([name, morning, night]) => {
+    if(morning === null && night === null) return; // omit role entirely if nothing entered
+    const mText = morning === null ? '—' : formatCount(morning);
+    const nText = night === null ? '—' : formatCount(night);
+    staffLines.push(`* *${name}:* Morning ${mText} | Night ${nText}`);
+  });
+  if(staffLines.length){
+    lines.push('', '*STAFF DEPLOYMENT*', '', ...staffLines);
+  }
+
+  outputArea.textContent = lines.join('\n');
+  resultCard.style.display = 'block';
+  resultCard.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function copyReport(){
+  const text = outputArea.textContent;
+  if(!text.trim()) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = original, 1500);
+  }).catch(() => {
+    const range = document.createRange();
+    range.selectNodeContents(outputArea);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+  });
+}
+
+function clearAll(){
+  document.querySelectorAll('input[type=text], input[type=date], input[type=number]').forEach(el => el.value = '');
+  document.querySelectorAll('.auto-tag').forEach(el => el.remove());
+  extractedData = null;
+  extractedSection.style.display = 'none';
+  extractedTable.innerHTML = '';
+  filenameEl.textContent = '';
+  statusEl.textContent = '';
+  statusEl.className = '';
+  outputArea.textContent = '';
+  resultCard.style.display = 'none';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('generateBtn').addEventListener('click', generateReport);
+document.getElementById('copyBtn').addEventListener('click', copyReport);
+document.getElementById('editBtn').addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+</script>
+</body>
+</html>
