@@ -1018,7 +1018,7 @@ function renderResults(r){
 
   // ---- WhatsApp text message ----
   let msg = '';
-  if(branch) msg += `*${TRI_UP}${Branch}${TRI_UP}*\n`;
+  if(branch) msg += `*${TRI_UP}${branch}${TRI_UP}*\n`;
   if(date) msg += `    *${date}*\n`;
   msg += `    *${TRI_DOWN}Daily Sale Report${TRI_DOWN}*\n`;
   msg += `*Net Sale${ARROW}${fmt(r.netSale)}*\n`;
