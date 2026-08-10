@@ -1020,11 +1020,11 @@ function renderResults(r){
   let msg = '';
   if(branch) msg += `*${TRI_DOWN}${branch}${TRI_DOWN}*\n`;
   if(date) msg += `    *${date}*\n`;
-  msg += `    *${TRI_UP} Sale${TRI_UP}*\n`;
+  msg += `    *${TRI_UP}Daily Sale Report${TRI_UP}*\n`;
   msg += `*Net Sale${ARROW}${fmt(r.netSale)}*\n`;
   msg += `*Gross Sale${ARROW}${fmt(r.grossSale)}*\n`;
   msg += `*Cheque Size${ARROW}${fmt(r.chequeSize)}*\n`;
-  msg += `*Total Trans${ARROW}${fmt(r.totalTrans)}* \n`;
+  msg += `*Total Transaction${ARROW}${fmt(r.totalTrans)}* \n`;
   msg += `*Dine In Sale ${ARROW}${fmt(r.buckets.dine.sale)}* \n`;
   msg += `*Transactions${ARROW}${fmt(r.buckets.dine.trans)}*\n`;
   msg += `*Take Away Sale ${ARROW}${fmt(r.buckets.take.sale)}*\n`;
