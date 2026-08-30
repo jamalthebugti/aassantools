@@ -2,276 +2,265 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>ERP Invoice Auto Filler</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
+
+*{
+    box-sizing:border-box;
 }
 
-body {
-    margin: 0;
-    background: #f4f7fb;
-    color: #172033;
-    font-family: Arial, Helvetica, sans-serif;
+body{
+    margin:0;
+    background:#f3f6fa;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#182235;
 }
 
-.container {
-    max-width: 1150px;
-    margin: 30px auto;
-    padding: 18px;
+.container{
+    max-width:1250px;
+    margin:25px auto;
+    padding:15px;
 }
 
-.header {
-    background: linear-gradient(135deg,#173b8f,#2463d4);
-    color: white;
-    padding: 28px;
-    border-radius: 16px;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,.12);
+.header{
+    background:linear-gradient(135deg,#153b91,#2870dd);
+    color:white;
+    padding:28px;
+    border-radius:16px;
+    box-shadow:0 8px 25px #0002;
+    margin-bottom:20px;
 }
 
-.header h1 {
-    margin: 0 0 8px;
+.header h1{
+    margin:0 0 8px;
 }
 
-.header p {
-    margin: 0;
-    opacity: .9;
+.card{
+    background:white;
+    border-radius:15px;
+    padding:22px;
+    margin-bottom:20px;
+    box-shadow:0 4px 18px #0000000d;
 }
 
-.card {
-    background: white;
-    padding: 22px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 18px rgba(0,0,0,.07);
+.upload{
+    display:block;
+    border:2px dashed #668bd2;
+    border-radius:13px;
+    padding:35px 15px;
+    text-align:center;
+    cursor:pointer;
+    background:#f8faff;
 }
 
-.upload {
-    display: block;
-    border: 2px dashed #6d91d5;
-    background: #f8faff;
-    padding: 35px 20px;
-    border-radius: 14px;
-    text-align: center;
-    cursor: pointer;
+.upload:hover{
+    background:#eef4ff;
 }
 
-.upload:hover {
-    background: #eef4ff;
+.upload input{
+    display:none;
 }
 
-.upload input {
-    display: none;
+.icon{
+    font-size:42px;
 }
 
-.upload-icon {
-    font-size: 42px;
-    margin-bottom: 10px;
+button{
+    border:0;
+    border-radius:8px;
+    padding:11px 17px;
+    font-weight:bold;
+    cursor:pointer;
 }
 
-button {
-    border: 0;
-    padding: 12px 18px;
-    border-radius: 9px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
+.primary{
+    background:#2465d5;
+    color:white;
 }
 
-.primary {
-    background: #2463d4;
-    color: white;
+.primary:hover{
+    background:#174fae;
 }
 
-.primary:hover {
-    background: #174fae;
+.secondary{
+    background:#e8edf6;
+    color:#21365d;
 }
 
-.secondary {
-    background: #e9eef8;
-    color: #1b315f;
+.danger{
+    background:#ffe1e1;
+    color:#a01919;
 }
 
-.danger {
-    background: #ffe4e4;
-    color: #a91e1e;
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:15px;
 }
 
-.actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 15px;
+.file{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #eee;
+    padding:10px;
 }
 
-.file {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding: 10px;
+.status{
+    display:none;
+    padding:12px;
+    border-radius:8px;
+    background:#eef4ff;
+    color:#214a97;
+    margin-top:15px;
 }
 
-.status {
-    display: none;
-    margin-top: 15px;
-    padding: 13px;
-    border-radius: 9px;
-    background: #eef4ff;
-    color: #214b99;
+.progress{
+    height:9px;
+    background:#e4e9f1;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:12px;
 }
 
-.progress {
-    height: 10px;
-    margin-top: 12px;
-    border-radius: 10px;
-    background: #e5eaf2;
-    overflow: hidden;
+.progressBar{
+    height:100%;
+    width:0;
+    background:#2465d5;
+    transition:.2s;
 }
 
-.progress-bar {
-    width: 0;
-    height: 100%;
-    background: #2463d4;
-    transition: width .2s;
+.stats{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 18px;
+.stat{
+    background:#f1f4f8;
+    padding:12px 18px;
+    border-radius:8px;
 }
 
-th {
-    background: #edf2fa;
-    text-align: left;
-    padding: 11px;
-    font-size: 13px;
+.stat strong{
+    display:block;
+    font-size:22px;
 }
 
-td {
-    padding: 9px 11px;
-    border-bottom: 1px solid #e8ebf0;
-    font-size: 13px;
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:18px;
 }
 
-tr.matched {
-    background: #f1fff4;
+th{
+    background:#edf2f9;
+    text-align:left;
+    padding:10px;
+    font-size:12px;
 }
 
-tr.warning {
-    background: #fff8e6;
+td{
+    border-bottom:1px solid #e8ebf0;
+    padding:9px;
+    font-size:13px;
 }
 
-tr.error {
-    background: #fff0f0;
+tr.good{
+    background:#f1fff4;
 }
 
-input[type="number"] {
-    width: 100px;
-    padding: 8px;
-    border: 1px solid #ccd5e3;
-    border-radius: 6px;
+tr.review{
+    background:#fff9e7;
 }
 
-.badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: bold;
+tr.bad{
+    background:#fff0f0;
 }
 
-.green {
-    background: #d8f7df;
-    color: #16733b;
+input[type=number]{
+    width:100px;
+    padding:7px;
+    border:1px solid #cbd4e2;
+    border-radius:6px;
 }
 
-.yellow {
-    background: #fff0bd;
-    color: #8a6400;
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
 }
 
-.red {
-    background: #ffdada;
-    color: #a31919;
+.green{
+    color:#116c35;
+    background:#d7f5df;
 }
 
-.small {
-    font-size: 12px;
-    color: #69758a;
+.yellow{
+    color:#815d00;
+    background:#fff0b7;
 }
 
-.stats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 15px;
+.red{
+    color:#a00000;
+    background:#ffdada;
 }
 
-.stat {
-    background: #f3f6fb;
-    padding: 12px 18px;
-    border-radius: 9px;
+.small{
+    color:#69758a;
+    font-size:11px;
 }
 
-.stat strong {
-    display: block;
-    font-size: 22px;
+textarea{
+    width:100%;
+    min-height:220px;
+    border:1px solid #ccd5e3;
+    border-radius:8px;
+    padding:12px;
+    font-family:monospace;
+    font-size:12px;
 }
 
-textarea {
-    width: 100%;
-    min-height: 180px;
-    padding: 12px;
-    border: 1px solid #ccd5e3;
-    border-radius: 9px;
-    font-family: monospace;
-    font-size: 12px;
+.bookmark{
+    background:#101827;
+    color:#b9d7ff;
+    border-radius:9px;
+    padding:15px;
+    word-break:break-all;
+    max-height:250px;
+    overflow:auto;
+    font-family:monospace;
+    font-size:11px;
 }
 
-.bookmarklet {
-    background: #111827;
-    color: #d1e4ff;
-    padding: 15px;
-    border-radius: 10px;
-    word-break: break-all;
-    max-height: 220px;
-    overflow: auto;
-    font-family: monospace;
-    font-size: 11px;
+.info{
+    background:#fff8df;
+    border-left:4px solid #e0a500;
+    padding:14px;
+    line-height:1.55;
+    border-radius:7px;
 }
 
-.instructions {
-    background: #fff9e8;
-    border-left: 4px solid #e3a700;
-    padding: 15px;
-    border-radius: 7px;
-    line-height: 1.6;
-}
+@media(max-width:750px){
 
-@media(max-width:700px) {
-
-    .container {
-        padding: 10px;
-        margin: 10px auto;
+    table{
+        font-size:11px;
     }
 
-    table {
-        font-size: 11px;
+    th,td{
+        padding:6px;
     }
 
-    th,
-    td {
-        padding: 7px;
-    }
 }
+
 </style>
 </head>
 
@@ -280,16 +269,17 @@ textarea {
 <div class="container">
 
 <div class="header">
-    <h1>ERP Invoice Auto Filler</h1>
-    <p>
-        Upload invoice pages → extract quantities → match ERP → generate bookmarklet
-    </p>
+
+<h1>ERP Invoice Auto Filler</h1>
+
+<p>
+Upload one or more invoice pages, extract quantities and generate a one-click ERP bookmarklet.
+</p>
+
 </div>
 
 
-<!-- =========================================================
-     UPLOAD
-========================================================= -->
+<!-- UPLOAD -->
 
 <div class="card">
 
@@ -303,12 +293,14 @@ textarea {
     multiple
     accept="image/*,.pdf">
 
-<div class="upload-icon">📄</div>
+<div class="icon">📄</div>
 
-<strong>Click to upload invoice</strong>
+<strong>
+Click here to upload invoice
+</strong>
 
 <div class="small">
-    Multiple images and PDF files are supported.
+Images and multi-page PDF invoices are supported.
 </div>
 
 </label>
@@ -317,35 +309,49 @@ textarea {
 
 <div class="actions">
 
-<button class="primary" onclick="processFiles()">
-    🔍 Read Invoice
+<button
+    class="primary"
+    onclick="processFiles()">
+
+🔍 Read Invoice
+
 </button>
 
-<button class="secondary" onclick="clearAll()">
-    Clear
+<button
+    class="secondary"
+    onclick="clearAll()">
+
+Clear
+
 </button>
 
 </div>
 
-<div id="status" class="status"></div>
+<div
+    id="status"
+    class="status">
+</div>
 
 <div class="progress">
-    <div id="progressBar" class="progress-bar"></div>
+
+<div
+    id="progressBar"
+    class="progressBar">
 </div>
 
 </div>
 
+</div>
 
-<!-- =========================================================
-     RESULTS
-========================================================= -->
+
+<!-- RESULTS -->
 
 <div
     class="card"
     id="resultsCard"
-    style="display:none;">
+    style="display:none">
 
-<h2>2. Invoice Items</h2>
+<h2>2. Detected Invoice Items</h2>
 
 <div class="stats">
 
@@ -356,13 +362,27 @@ Detected
 
 <div class="stat">
 <strong id="matchedCount">0</strong>
-Matched
+Confident
 </div>
 
 <div class="stat">
 <strong id="reviewCount">0</strong>
 Review
 </div>
+
+</div>
+
+<div class="info" style="margin-top:15px">
+
+<strong>Important:</strong>
+
+Review the quantities before generating the ERP bookmarklet.
+
+Green = confident extraction.
+
+Yellow = OCR required additional interpretation.
+
+Red = questionable.
 
 </div>
 
@@ -373,16 +393,11 @@ Review
 
 <tr>
 
-<th>Invoice Item</th>
-
+<th>Invoice Text</th>
 <th>Invoice Qty</th>
-
 <th>ERP Item</th>
-
 <th>ERP Qty</th>
-
-<th>Source</th>
-
+<th>Page</th>
 <th>Status</th>
 
 </tr>
@@ -400,7 +415,7 @@ Review
     class="primary"
     onclick="generateBookmarklet()">
 
-    🔗 Generate ERP Bookmarklet
+🔗 Generate ERP Bookmarklet
 
 </button>
 
@@ -409,37 +424,21 @@ Review
 </div>
 
 
-<!-- =========================================================
-     BOOKMARKLET
-========================================================= -->
+<!-- BOOKMARK -->
 
 <div
     class="card"
     id="bookmarkCard"
-    style="display:none;">
+    style="display:none">
 
 <h2>3. ERP Bookmarklet</h2>
 
-<div class="instructions">
+<div class="info">
 
-<strong>One-time setup:</strong>
-
-Create a Chrome bookmark.
-
-Then paste the generated code into the bookmark's
+Create a browser bookmark and paste the generated code into the bookmark's
 <strong>URL</strong> field.
 
-<br><br>
-
-After that:
-
-<br>
-
-1. Open your ERP Purchase Order page.
-<br>
-2. Click the bookmark.
-<br>
-3. The matching quantities will automatically be filled.
+Then open the ERP item-entry page and click the bookmark.
 
 </div>
 
@@ -449,36 +448,29 @@ After that:
     class="primary"
     onclick="copyBookmarklet()">
 
-    📋 Copy Bookmarklet
+📋 Copy Bookmarklet
 
 </button>
 
 <br><br>
 
 <div
-    id="bookmarkletBox"
-    class="bookmarklet">
+    id="bookmarkBox"
+    class="bookmark">
 </div>
 
 </div>
 
 
-<!-- =========================================================
-     OCR
-========================================================= -->
+<!-- OCR -->
 
 <div class="card">
 
-<h2>OCR Text</h2>
-
-<p class="small">
-Raw OCR output from all uploaded pages.
-Useful for checking what the invoice reader detected.
-</p>
+<h2>Raw OCR</h2>
 
 <textarea
     id="ocrText"
-    placeholder="OCR text will appear here...">
+    placeholder="OCR output will appear here...">
 </textarea>
 
 </div>
@@ -487,10 +479,6 @@ Useful for checking what the invoice reader detected.
 
 
 <script type="module">
-
-/* =========================================================
-   PDF.JS
-========================================================= */
 
 import * as pdfjsLib from
 "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
@@ -502,7 +490,7 @@ window.pdfjsLib = pdfjsLib;
 
 
 /* =========================================================
-   ERP MASTER LIST
+ERP ITEMS
 ========================================================= */
 
 window.erpItems = [
@@ -584,67 +572,67 @@ window.erpItems = [
 
 
 /* =========================================================
-   INVOICE ALIASES
+ALIASES
 ========================================================= */
 
 window.aliases = {
 
+"dust calctor":
+"DUST COLLECTOR",
+
+"dust collector":
+"DUST COLLECTOR",
+
+"dust collector with broom":
+"DUST COLLECTOR",
+
+"dust calctorwithbroom":
+"DUST COLLECTOR",
+
+"steel handle broom brush":
+"STEEL BROOM",
+
+"steel broom":
+"STEEL BROOM",
+
+"steel wool":
+"STEEL WOOL",
+
+"steel woll":
+"STEEL WOOL",
+
 "food safety liner medium":
 "FOOD SAFETY LINER M",
 
-"food safety liner (medium)":
+"good safety liner medium":
 "FOOD SAFETY LINER M",
 
 "food safety liner m":
 "FOOD SAFETY LINER M",
 
-"air freshener":
+"air freshener refill":
 "AIR FRESHNER",
 
-"air freshener refill":
+"air freshener":
 "AIR FRESHNER",
 
 "air freshner":
 "AIR FRESHNER",
 
-"broom":
-"BROOM",
-
-"duster":
-"DUSTER",
-
-"garbage liner small":
-"GARBAGE LINER SMALL",
-
-"garbage liner (small)":
-"GARBAGE LINER SMALL",
-
-"glint":
-"GLIENT GALLON",
-
-"glient":
-"GLIENT GALLON",
-
-"hand wash liquid":
-"HAND WASH LIQUID GALLON",
-
-"harpic":
-"HARPIC GALLON",
-
-"harpic toilet cleaner":
-"HARPIC GALLON",
-
-"harpic toilet cleaner concentrate":
-"HARPIC GALLON",
-
-"jumbo roll":
-"JUMBO ROLL",
+"beard mask":
+"BEARD MASK",
 
 "dish washing liquid":
 "DISHWASH LIQUID GALLON",
 
 "dishwash liquid":
 "DISHWASH LIQUID GALLON",
+
+"hand wash liquid":
+"HAND WASH LIQUID GALLON",
+
+"hand wash liquid liters":
+"HAND WASH LIQUID GALLON",
 
 "mop head":
 "MOP HEAD",
@@ -655,29 +643,17 @@ window.aliases = {
 "nitrile gloves":
 "NITRILE GLOVES",
 
-"phenyl":
-"PHENYL GALLON",
-
-"phynyle":
-"PHENYL GALLON",
+"scotch brite":
+"SCOTCH BRITE",
 
 "scotch brite":
 "SCOTCH BRITE",
 
-"steel wool":
-"STEEL WOOL",
+"toilet roll":
+"TOILET ROLL",
 
-"salt excel":
-"SALT",
-
-"thermal roll":
-"THERMAL ROLL",
-
-"stapler pins":
-"STAPLLER PIN",
-
-"stapller pins":
-"STAPLLER PIN",
+"looma toilet roll":
+"TOILET ROLL",
 
 "ball pen":
 "BALL PEN",
@@ -688,46 +664,70 @@ window.aliases = {
 "marker":
 "MARKER",
 
-"surf":
-"SURF",
+"carton scotch tape":
+"CARTON TAPE",
+
+"carton tape":
+"CARTON TAPE",
+
+"garbage liner small":
+"GARBAGE LINER SMALL",
+
+"black net cap":
+"NET CAP",
+
+"disposable black net cap":
+"NET CAP",
 
 "net cap":
 "NET CAP",
 
-"beard mask":
-"BEARD MASK",
+"surf":
+"SURF",
 
-"toilet roll":
-"TOILET ROLL",
+"harpic":
+"HARPIC GALLON",
 
-"carton tape":
-"CARTON TAPE"
+"harpic toilet cleaner":
+"HARPIC GALLON",
+
+"phenyl":
+"PHENYL GALLON",
+
+"phynyle":
+"PHENYL GALLON",
+
+"stapler pins":
+"STAPLLER PIN",
+
+"stapller pins":
+"STAPLLER PIN"
 
 };
 
 
 /* =========================================================
-   SPECIAL CONVERSIONS
+SPECIAL CONVERSIONS
 ========================================================= */
 
 window.conversions = {
 
-"SURF": 0.045,
+"SURF":0.045,
 
-"NITRILE GLOVES": 100
+"NITRILE GLOVES":100
 
 };
 
 
 /* =========================================================
-   NORMALIZE
+NORMALIZE
 ========================================================= */
 
-window.normalize = function(text) {
+window.normalize = function(s){
 
-return String(text || "")
+return String(s || "")
 .toLowerCase()
-.replace(/[()[\],.:;]/g," ")
+.replace(/[^a-z0-9.]+/g," ")
 .replace(/\s+/g," ")
 .trim();
 
@@ -735,41 +735,159 @@ return String(text || "")
 
 
 /* =========================================================
-   FIND ERP ITEM
+LEVENSHTEIN
 ========================================================= */
 
-window.findERPMatch = function(text) {
+window.levenshtein = function(a,b){
 
-const n = normalize(text);
+a=normalize(a);
+b=normalize(b);
+
+const matrix=[];
+
+for(let i=0;i<=b.length;i++){
+    matrix[i]=[i];
+}
+
+for(let j=0;j<=a.length;j++){
+    matrix[0][j]=j;
+}
+
+for(let i=1;i<=b.length;i++){
+
+    for(let j=1;j<=a.length;j++){
+
+        matrix[i][j] =
+        b.charAt(i-1) === a.charAt(j-1)
+
+        ? matrix[i-1][j-1]
+
+        : Math.min(
+            matrix[i-1][j]+1,
+            matrix[i][j-1]+1,
+            matrix[i-1][j-1]+1
+        );
+
+    }
+
+}
+
+return matrix[b.length][a.length];
+
+};
 
 
-/* Aliases first */
+/* =========================================================
+TOKEN SIMILARITY
+========================================================= */
 
-for (const alias of Object.keys(aliases)) {
+window.similarity = function(a,b){
 
-if (
+a=normalize(a);
+b=normalize(b);
+
+if(!a || !b)
+return 0;
+
+if(a===b)
+return 1;
+
+if(a.includes(b) || b.includes(a))
+return .92;
+
+const distance =
+levenshtein(a,b);
+
+return 1 -
+distance /
+Math.max(a.length,b.length);
+
+};
+
+
+/* =========================================================
+FIND ERP MATCH
+========================================================= */
+
+window.findERP = function(text){
+
+const n=normalize(text);
+
+
+/* exact aliases */
+
+const aliasKeys =
+Object.keys(aliases)
+.sort(
+(a,b)=>normalize(b).length-normalize(a).length
+);
+
+for(const alias of aliasKeys){
+
+if(
 n.includes(normalize(alias))
-) {
+){
 
-return aliases[alias];
+return {
+name:aliases[alias],
+score:1,
+method:"alias"
+};
 
 }
 
 }
 
 
-/* ERP names */
+/* exact ERP names */
 
-for (const item of erpItems) {
+for(const item of erpItems){
 
-if (
-n === normalize(item) ||
+if(
 n.includes(normalize(item))
-) {
+){
 
-return item;
+return {
+name:item,
+score:1,
+method:"exact"
+};
 
 }
+
+}
+
+
+/* fuzzy matching */
+
+let best=null;
+
+for(const item of erpItems){
+
+const score =
+similarity(n,item);
+
+if(
+!best ||
+score>best.score
+){
+
+best={
+name:item,
+score:score,
+method:"fuzzy"
+};
+
+}
+
+}
+
+if(
+best &&
+best.score>=.60
+){
+
+return best;
 
 }
 
@@ -779,27 +897,21 @@ return null;
 
 
 /* =========================================================
-   CONVERT QUANTITY
+CONVERT
 ========================================================= */
 
 window.convertQuantity = function(
-erpName,
-quantity
-) {
+item,
+qty
+){
 
-let q = parseFloat(quantity);
+let q=parseFloat(qty);
 
-if (isNaN(q)) {
+if(isNaN(q))
 return "";
-}
 
-if (
-erpName &&
-conversions[erpName]
-) {
-
-q *= conversions[erpName];
-
+if(conversions[item]){
+    q*=conversions[item];
 }
 
 return Number(
@@ -814,62 +926,58 @@ q.toFixed(6)
 <script>
 
 /* =========================================================
-   STATE
+STATE
 ========================================================= */
 
-let selectedFiles = [];
+let files=[];
 
-let detectedItems = [];
+let detected=[];
 
-let allOCRText = "";
+let rawOCR="";
 
-
-/* =========================================================
-   FILE LIST
-========================================================= */
 
 document
 .getElementById("fileInput")
 .addEventListener(
 "change",
-function(e) {
+e=>{
 
-selectedFiles =
+files=
 Array.from(e.target.files);
 
-renderFileList();
+renderFiles();
 
-}
-);
+});
 
 
-function renderFileList() {
+/* =========================================================
+FILE LIST
+========================================================= */
 
-const box =
+function renderFiles(){
+
+const box=
 document.getElementById("fileList");
 
-box.innerHTML = "";
+box.innerHTML="";
 
-selectedFiles.forEach(
-(file,index) => {
+files.forEach(
+(file,i)=>{
 
-const div =
+const div=
 document.createElement("div");
 
-div.className = "file";
+div.className="file";
 
-div.innerHTML = `
+div.innerHTML=`
 
 <span>
 📄 ${escapeHTML(file.name)}
-<span class="small">
-(${formatBytes(file.size)})
-</span>
 </span>
 
 <button
 class="danger"
-onclick="removeFile(${index})">
+onclick="removeFile(${i})">
 
 Remove
 
@@ -879,74 +987,86 @@ Remove
 
 box.appendChild(div);
 
-}
-);
+});
 
 }
 
 
-function removeFile(index) {
+function removeFile(i){
 
-selectedFiles.splice(index,1);
+files.splice(i,1);
 
-renderFileList();
+renderFiles();
 
 }
 
 
 /* =========================================================
-   MAIN PROCESS
+STATUS
 ========================================================= */
 
-async function processFiles() {
+function status(text){
 
-if (!selectedFiles.length) {
+const box=
+document.getElementById("status");
 
-alert(
-"Please upload an invoice image or PDF."
-);
+box.textContent=text;
+
+box.style.display=
+text ? "block":"none";
+
+}
+
+
+function progress(v){
+
+document
+.getElementById("progressBar")
+.style.width=
+v+"%";
+
+}
+
+
+/* =========================================================
+PROCESS FILES
+========================================================= */
+
+async function processFiles(){
+
+if(!files.length){
+
+alert("Please upload an invoice.");
 
 return;
 
 }
 
-detectedItems = [];
+detected=[];
+rawOCR="";
 
-allOCRText = "";
+progress(0);
 
-setProgress(0);
-
-setStatus(
-"Preparing invoice..."
-);
-
-try {
-
-let totalPages = 0;
+let totalPages=0;
 
 
-/* Count pages */
+/* count pages */
 
-for (
-const file of selectedFiles
-) {
+for(const file of files){
 
-if (
-file.type === "application/pdf" ||
-file.name
-.toLowerCase()
-.endsWith(".pdf")
-) {
+if(
+file.type==="application/pdf" ||
+file.name.toLowerCase().endsWith(".pdf")
+){
 
-const pdf =
+const pdf=
 await pdfjsLib.getDocument({
-data: await file.arrayBuffer()
+data:await file.arrayBuffer()
 }).promise;
 
-totalPages +=
-pdf.numPages;
+totalPages+=pdf.numPages;
 
-} else {
+}else{
 
 totalPages++;
 
@@ -955,147 +1075,133 @@ totalPages++;
 }
 
 
-let currentPage = 0;
+let current=0;
 
 
-/* Process every file */
+for(const file of files){
 
-for (
-const file of selectedFiles
-) {
+if(
+file.type==="application/pdf" ||
+file.name.toLowerCase().endsWith(".pdf")
+){
 
-
-/* PDF */
-
-if (
-file.type === "application/pdf" ||
-file.name
-.toLowerCase()
-.endsWith(".pdf")
-) {
-
-const pdf =
+const pdf=
 await pdfjsLib.getDocument({
-data: await file.arrayBuffer()
+data:await file.arrayBuffer()
 }).promise;
 
 
-for (
-let pageNo = 1;
-pageNo <= pdf.numPages;
-pageNo++
-) {
+for(
+let p=1;
+p<=pdf.numPages;
+p++
+){
 
-currentPage++;
+current++;
 
-setStatus(
-`Reading ${file.name} — page ${pageNo} of ${pdf.numPages}`
+status(
+`Reading ${file.name} — page ${p}/${pdf.numPages}`
 );
 
 
-const page =
-await pdf.getPage(pageNo);
+const page=
+await pdf.getPage(p);
 
-
-const viewport =
+const viewport=
 page.getViewport({
-scale: 3
+scale:3
 });
 
-
-const canvas =
+const canvas=
 document.createElement("canvas");
 
-canvas.width =
+canvas.width=
 viewport.width;
 
-canvas.height =
+canvas.height=
 viewport.height;
 
-
-const ctx =
+const ctx=
 canvas.getContext("2d");
 
-
 await page.render({
-canvasContext: ctx,
-viewport: viewport
+canvasContext:ctx,
+viewport
 }).promise;
 
 
-const text =
-await runOCR(canvas);
+const ocr=
+await doOCR(canvas);
 
 
-allOCRText +=
-`\n===== ${file.name} — PAGE ${pageNo} =====\n`
+rawOCR+=
+`\n===== ${file.name} PAGE ${p} =====\n`
 +
-text;
+ocr.text;
 
 
-const pageItems =
-extractItems(
-text,
+const rows=
+buildRows(
+ocr.data
+);
+
+
+const items=
+extractRows(
+rows,
 file.name,
-pageNo
+p
 );
 
-detectedItems.push(
-...pageItems
-);
+detected.push(...items);
 
 
-setProgress(
+progress(
 Math.round(
-currentPage /
-totalPages *
-100
+current/totalPages*100
 )
 );
 
 }
 
-}
+}else{
 
+current++;
 
-/* IMAGE */
-
-else {
-
-currentPage++;
-
-setStatus(
-`Reading ${file.name}...`
+status(
+`Reading ${file.name}`
 );
 
 
-const text =
-await runOCR(file);
+const ocr=
+await doOCR(file);
 
 
-allOCRText +=
+rawOCR+=
 `\n===== ${file.name} =====\n`
 +
-text;
+ocr.text;
 
 
-const pageItems =
-extractItems(
-text,
+const rows=
+buildRows(
+ocr.data
+);
+
+
+const items=
+extractRows(
+rows,
 file.name,
 1
 );
 
-detectedItems.push(
-...pageItems
-);
+detected.push(...items);
 
 
-setProgress(
+progress(
 Math.round(
-currentPage /
-totalPages *
-100
+current/totalPages*100
 )
 );
 
@@ -1104,74 +1210,51 @@ totalPages *
 }
 
 
-/* Combine duplicate ERP items */
+/* Combine */
 
-detectedItems =
-combineItems(
-detectedItems
-);
+detected=
+combine(detected);
 
 
 document
 .getElementById("ocrText")
-.value =
-allOCRText;
+.value=
+rawOCR;
 
 
 renderResults();
 
 
-setStatus(
-`Finished. ${detectedItems.length} item(s) detected.`
+status(
+`Finished. Found ${detected.length} ERP item(s).`
 );
-
-}
-catch(error) {
-
-console.error(error);
-
-setStatus(
-"OCR error: " +
-error.message
-);
-
-alert(
-"OCR failed. Please try again."
-);
-
-}
 
 }
 
 
 /* =========================================================
-   OCR
+OCR WITH DATA
 ========================================================= */
 
-async function runOCR(input) {
+async function doOCR(input){
 
-const result =
+const result=
 await Tesseract.recognize(
 input,
 "eng",
 {
 
-logger: function(message) {
+logger:m=>{
 
-if (
-message.status ===
-"recognizing text"
-) {
+if(
+m.status==="recognizing text"
+){
 
-const percent =
+status(
+"OCR: "+
 Math.round(
-(message.progress || 0) *
-100
-);
-
-setStatus(
-"OCR reading: " +
-percent +
+(m.progress||0)*100
+)+
 "%"
 );
 
@@ -1182,103 +1265,185 @@ percent +
 }
 );
 
-return result.data.text;
+return {
+text:result.data.text,
+data:result.data
+};
 
 }
 
 
 /* =========================================================
-   CLEAN OCR LINE
+BUILD ROWS FROM OCR WORD POSITIONS
 ========================================================= */
 
-function cleanOCRLine(line) {
+function buildRows(data){
 
-return line
-.replace(/\|/g," ")
-.replace(/[ ]{2,}/g," ")
-.trim();
+const words=
+(data.words||[])
+.filter(w=>
+w.text &&
+w.text.trim()
+);
 
-}
 
+const rows=[];
 
-/* =========================================================
-   QUANTITY EXTRACTION
-========================================================= */
 
 /*
-IMPORTANT:
+Group words by vertical position.
 
-We DO NOT take the last number.
-
-We first search for a number followed by:
-
-Units
-Unit
-Uts
-Uits
-Unlts
-Nos
-Pcs
-
-because invoice amount/rate can appear later.
+Words within ~18px of each other
+are considered the same invoice row.
 */
 
-function extractQuantityFromLine(
-line
-) {
+for(const word of words){
 
-let original = line;
+const y=
+word.bbox
+? word.bbox.y0
+: 0;
+
+let row=
+rows.find(r=>
+Math.abs(r.y-y)<18
+);
 
 
-/* Normalize OCR errors */
+if(!row){
 
-let text =
-line
-.replace(/,/g," ")
+row={
+y:y,
+words:[]
+};
+
+rows.push(row);
+
+}else{
+
+row.words.push(word);
+
+}
+
+}
+
+
+/*
+Sort by page position
+*/
+
+rows.sort(
+(a,b)=>a.y-b.y
+);
+
+
+/*
+Sort words left-to-right
+*/
+
+for(const row of rows){
+
+row.words.sort(
+(a,b)=>
+(a.bbox?.x0||0) -
+(b.bbox?.x0||0)
+);
+
+row.text=
+row.words
+.map(w=>w.text)
+.join(" ");
+
+}
+
+return rows;
+
+}
+
+
+/* =========================================================
+NORMALIZE OCR NUMBER
+========================================================= */
+
+function parseOCRNumber(raw){
+
+if(!raw)
+return null;
+
+
+let s=
+String(raw)
+.replace(/,/g,"")
+.trim();
+
+
+/*
+3 500 gets handled elsewhere.
+*/
+
+s=s.replace(/\s+/g,"");
+
+
+if(
+!/^\d+(?:\.\d+)?$/.test(s)
+)
+return null;
+
+
+const n=
+parseFloat(s);
+
+return isNaN(n)
+? null
+:n;
+
+}
+
+
+/* =========================================================
+QUANTITY FROM ROW
+========================================================= */
+
+function getQuantity(row){
+
+const text=
+row.text
 .replace(/\|/g," ")
 .replace(/\s+/g," ")
 .trim();
 
 
 /*
-Patterns:
-
-4.00 Units
-4 Units
-4.00 Uts
-4 Uts
-4.00 Uits
+Most reliable:
+number + Units/Uts/etc.
 */
 
-const patterns = [
+const patterns=[
 
-/(\d+(?:\.\d+)?)\s*(?:units?|uts|uits|unlts)\b/i,
+/(\d+(?:\.\d+)?)\s*(units?|uts|unis|iits|iis|unlts)\b/i,
 
-/(\d+(?:\.\d+)?)\s*(?:pcs?|pieces?)\b/i,
+/(\d+(?:\.\d+)?)\s*(pcs?|pieces?)\b/i,
 
-/(\d+(?:\.\d+)?)\s*(?:nos?|numbers?)\b/i
+/(\d+(?:\.\d+)?)\s*(nos?|numbers?)\b/i
 
 ];
 
 
-for (
-const pattern of patterns
-) {
+for(const pattern of patterns){
 
-const match =
-text.match(pattern);
+const m=text.match(pattern);
 
-if (match) {
+if(m){
 
-let q =
-parseFloat(match[1]);
+let q=
+parseOCRNumber(m[1]);
 
-if (!isNaN(q)) {
+if(q!==null){
 
 return {
-quantity:q,
+qty:q,
 confidence:"high",
-source:match[0]
+source:m[0]
 };
 
 }
@@ -1289,50 +1454,35 @@ source:match[0]
 
 
 /*
-OCR sometimes changes:
+OCR often turns:
 
-4.00 Units
+3.500 Units
 
 into:
 
-400 Uts
+3 500 Unis
 
-When we encounter a number immediately
-before Uts and it has no decimal point,
-we need to consider whether it represents
-hundredths.
-
-Example:
-
-400 Uts → 4.00 Units
-600 Uts → 6.00 Units
-100 Uts → 1.00 Units
 */
 
-const compact =
+const compact=
 text.match(
-/\b(\d{3})\s*(?:uts|uits|unlts)\b/i
+/(\d+)\s+(\d{3})\s*(units?|uts|unis|iis)\b/i
 );
 
-if (compact) {
+if(compact){
 
-const n =
-parseInt(compact[1],10);
+const combined=
+compact[1]+"."+compact[2];
 
-if (
-n >= 100 &&
-n <= 999
-) {
+const q=
+parseFloat(combined);
+
+if(!isNaN(q)){
 
 return {
-
-quantity:n / 100,
-
+qty:q,
 confidence:"medium",
-
-source:compact[0] +
-" [OCR decimal correction]"
-
+source:compact[0]
 };
 
 }
@@ -1341,137 +1491,53 @@ source:compact[0] +
 
 
 /*
-Fallback:
+Examples such as:
 
-Search for "Units" and inspect
-numbers immediately before it.
+1200 ts
+
+can actually represent 12.00.
+Only use this if a unit marker follows.
 */
 
-const unitIndex =
-text.toLowerCase()
-.search(
-/units?|uts|uits|unlts/
+const threeDigitOCR=
+text.match(
+/\b(\d{3,4})\s*(?:uts|unis|iis|ts)\b/i
 );
 
-if (unitIndex >= 0) {
+if(threeDigitOCR){
 
-const before =
-text.substring(
-0,
-unitIndex
+const n=
+parseInt(
+threeDigitOCR[1],
+10
 );
 
-const nums =
-before.match(
-/\d+(?:\.\d+)?/g
-);
 
-if (
-nums &&
-nums.length
-) {
+/*
+If 400, 500, 600 etc.
+it is very likely OCR dropped
+the decimal point.
 
-const q =
-parseFloat(
-nums[nums.length - 1]
-);
+400 -> 4
+500 -> 5
+600 -> 6
 
-if (
-!isNaN(q)
-) {
+1200 -> 12
+*/
+
+if(
+n>=100 &&
+n<=9999
+){
 
 return {
 
-quantity:q,
+qty:n/100,
 
 confidence:"medium",
 
-source:"number before unit"
-
-};
-
-}
-
-}
-
-}
-
-
-return null;
-
-}
-
-
-/* =========================================================
-   FIND ITEM IN LINE
-========================================================= */
-
-function findItemInLine(line) {
-
-const normalized =
-normalize(line);
-
-
-/* Longer aliases first */
-
-const aliasesSorted =
-Object.keys(aliases)
-.sort(
-(a,b) =>
-normalize(b).length -
-normalize(a).length
-);
-
-
-for (
-const alias of aliasesSorted
-) {
-
-if (
-normalized.includes(
-normalize(alias)
-)
-) {
-
-return {
-
-invoiceItem:alias,
-
-erpItem:aliases[alias]
-
-};
-
-}
-
-}
-
-
-/* ERP names */
-
-const erpSorted =
-[...erpItems]
-.sort(
-(a,b) =>
-normalize(b).length -
-normalize(a).length
-);
-
-
-for (
-const erp of erpSorted
-) {
-
-if (
-normalized.includes(
-normalize(erp)
-)
-) {
-
-return {
-
-invoiceItem:erp,
-
-erpItem:erp
+source:threeDigitOCR[0] +
+" [OCR decimal repair]"
 
 };
 
@@ -1486,78 +1552,74 @@ return null;
 
 
 /* =========================================================
-   EXTRACT ITEMS FROM PAGE
+FIND ITEM IN ROW
 ========================================================= */
 
-function extractItems(
-text,
-fileName,
-pageNumber
-) {
+function findItem(rowText){
 
-const lines =
-text
-.split(/\r?\n/)
-.map(cleanOCRLine)
-.filter(Boolean);
-
-
-const results = [];
-
-
-for (
-let i = 0;
-i < lines.length;
-i++
-) {
-
-const line =
-lines[i];
-
-
-/*
-Try current line.
-*/
-
-let item =
-findItemInLine(line);
-
-
-let quantity =
-extractQuantityFromLine(line);
-
-
-/*
-If item exists but quantity doesn't,
-look at next one or two OCR lines.
-
-This helps when OCR breaks a table row.
-*/
-
-if (
-item &&
-!quantity
-) {
-
-for (
-let j = 1;
-j <= 2;
-j++
-) {
-
-if (
-lines[i+j]
-) {
-
-const nextQuantity =
-extractQuantityFromLine(
-lines[i+j]
+return findERP(
+rowText
 );
 
-if (nextQuantity) {
+}
 
-quantity =
-nextQuantity;
+
+/* =========================================================
+EXTRACT ROWS
+========================================================= */
+
+function extractRows(
+rows,
+file,
+page
+){
+
+const results=[];
+
+
+for(let i=0;i<rows.length;i++){
+
+const row=rows[i];
+
+let item=
+findItem(row.text);
+
+let quantity=
+getQuantity(row);
+
+
+/*
+If item found but quantity
+is not on same OCR row,
+look at nearby rows.
+
+This is critical for your invoice.
+*/
+
+if(item && !quantity){
+
+for(
+let j=1;
+j<=4;
+j++
+){
+
+if(!rows[i+j])
+continue;
+
+
+/*
+Only search nearby rows.
+*/
+
+const q=
+getQuantity(
+rows[i+j]
+);
+
+if(q){
+
+quantity=q;
 
 break;
 
@@ -1567,39 +1629,37 @@ break;
 
 }
 
-}
-
 
 /*
-If quantity exists but item doesn't,
-sometimes OCR splits the item and
-quantity across adjacent lines.
+If quantity found but item is missing,
+search neighboring rows.
+
+This handles OCR splitting:
+
+Duster
+...
+8 Units
 */
 
-if (
-!item &&
-quantity
-) {
+if(!item && quantity){
 
-for (
-let j = 1;
-j <= 2;
+for(
+let j=1;
+j<=4;
 j++
-) {
+){
 
-if (
-lines[i+j]
-) {
+if(!rows[i+j])
+continue;
 
-const nextItem =
-findItemInLine(
-lines[i+j]
+const candidate=
+findItem(
+rows[i+j].text
 );
 
-if (nextItem) {
+if(candidate){
 
-item =
-nextItem;
+item=candidate;
 
 break;
 
@@ -1609,31 +1669,26 @@ break;
 
 }
 
-}
 
+if(item && quantity){
 
-if (
-item &&
-quantity
-) {
-
-const erpQty =
+const erpQty=
 convertQuantity(
-item.erpItem,
-quantity.quantity
+item.name,
+quantity.qty
 );
 
 
 results.push({
 
-invoiceItem:
-item.invoiceItem,
+invoiceText:
+row.text,
 
 erpItem:
-item.erpItem,
+item.name,
 
 invoiceQty:
-quantity.quantity,
+quantity.qty,
 
 erpQty:
 erpQty,
@@ -1642,9 +1697,90 @@ confidence:
 quantity.confidence,
 
 source:
-`${fileName} page ${pageNumber}`
+file+" page "+page
 
 });
+
+}
+
+}
+
+
+/*
+Second pass:
+some items may be on one OCR row and
+quantity on the following row.
+
+Look for ERP item rows that were
+not captured above.
+*/
+
+for(let i=0;i<rows.length;i++){
+
+const item=
+findItem(rows[i].text);
+
+if(!item)
+continue;
+
+
+/*
+Already found?
+*/
+
+const already=
+results.some(
+r=>
+r.invoiceText===rows[i].text &&
+r.source===
+file+" page "+page
+);
+
+if(already)
+continue;
+
+
+for(
+let j=1;
+j<=5;
+j++
+){
+
+if(!rows[i+j])
+continue;
+
+const q=
+getQuantity(rows[i+j]);
+
+if(q){
+
+results.push({
+
+invoiceText:
+rows[i].text,
+
+erpItem:
+item.name,
+
+invoiceQty:
+q.qty,
+
+erpQty:
+convertQuantity(
+item.name,
+q.qty
+),
+
+confidence:"medium",
+
+source:
+file+" page "+page
+
+});
+
+break;
+
+}
 
 }
 
@@ -1657,66 +1793,44 @@ return results;
 
 
 /* =========================================================
-   COMBINE DUPLICATE ITEMS
+COMBINE
 ========================================================= */
 
-function combineItems(items) {
+function combine(items){
 
-const map = {};
-
-
-for (
-const item of items
-) {
-
-if (
-!item.erpItem
-) continue;
+const map={};
 
 
-const key =
+for(const item of items){
+
+const key=
 item.erpItem.toUpperCase();
 
 
-if (
-!map[key]
-) {
+if(!map[key]){
 
-map[key] = {
-
+map[key]={
 ...item
-
 };
 
-}
-else {
+}else{
 
-map[key].invoiceQty +=
+map[key].invoiceQty+=
 item.invoiceQty;
 
 
-/*
-Recalculate conversion
-after combining.
-*/
-
-map[key].erpQty =
+map[key].erpQty=
 convertQuantity(
 item.erpItem,
 map[key].invoiceQty
 );
 
 
-/*
-If any page had medium confidence,
-keep medium confidence.
-*/
+if(
+item.confidence!=="high"
+){
 
-if (
-item.confidence === "medium"
-) {
-
-map[key].confidence =
+map[key].confidence=
 "medium";
 
 }
@@ -1732,54 +1846,45 @@ return Object.values(map);
 
 
 /* =========================================================
-   RENDER RESULTS
+RENDER
 ========================================================= */
 
-function renderResults() {
+function renderResults(){
 
-const body =
-document.getElementById(
-"resultsBody"
-);
+const body=
+document.getElementById("resultsBody");
 
-body.innerHTML = "";
+body.innerHTML="";
 
-let matched = 0;
-let review = 0;
+let confident=0;
+let review=0;
 
 
-detectedItems.forEach(
-(item,index) => {
+detected.forEach(
+(item,index)=>{
 
-const tr =
+const tr=
 document.createElement("tr");
 
 
-if (
-item.confidence === "high"
-) {
+if(item.confidence==="high"){
 
-tr.className =
-"matched";
+tr.className="good";
+confident++;
 
-matched++;
+}else{
 
-}
-else {
-
-tr.className =
-"warning";
-
+tr.className="review";
 review++;
 
 }
 
 
-tr.innerHTML = `
+tr.innerHTML=`
 
 <td>
 <strong>
-${escapeHTML(item.invoiceItem)}
+${escapeHTML(item.invoiceText)}
 </strong>
 </td>
 
@@ -1789,10 +1894,9 @@ ${escapeHTML(item.invoiceItem)}
 type="number"
 step="any"
 value="${item.invoiceQty}"
-onchange="updateQuantity(
-${index},
-this.value
-)">
+onchange="
+updateQty(${index},this.value)
+">
 
 </td>
 
@@ -1803,9 +1907,11 @@ ${escapeHTML(item.erpItem)}
 </td>
 
 <td>
+
 <strong id="erpQty${index}">
 ${item.erpQty}
 </strong>
+
 </td>
 
 <td class="small">
@@ -1815,7 +1921,7 @@ ${escapeHTML(item.source)}
 <td>
 
 ${
-item.confidence === "high"
+item.confidence==="high"
 
 ?
 
@@ -1833,111 +1939,100 @@ item.confidence === "high"
 
 body.appendChild(tr);
 
-}
-);
+});
 
 
 document.getElementById(
 "totalCount"
-).textContent =
-detectedItems.length;
-
+).textContent=
+detected.length;
 
 document.getElementById(
 "matchedCount"
-).textContent =
-matched;
-
+).textContent=
+confident;
 
 document.getElementById(
 "reviewCount"
-).textContent =
+).textContent=
 review;
-
 
 document.getElementById(
 "resultsCard"
-).style.display =
+).style.display=
 "block";
 
 }
 
 
 /* =========================================================
-   UPDATE QUANTITY
+UPDATE
 ========================================================= */
 
-function updateQuantity(
-index,
-value
-) {
+function updateQty(index,value){
 
-const item =
-detectedItems[index];
+const q=
+parseFloat(value)||0;
 
+detected[index].invoiceQty=q;
 
-item.invoiceQty =
-parseFloat(value) || 0;
-
-
-item.erpQty =
+detected[index].erpQty=
 convertQuantity(
-item.erpItem,
-item.invoiceQty
+detected[index].erpItem,
+q
 );
 
 
 document.getElementById(
-"erpQty" + index
-).textContent =
-item.erpQty;
+"erpQty"+index
+).textContent=
+detected[index].erpQty;
 
 }
 
 
 /* =========================================================
-   GENERATE BOOKMARKLET
+BOOKMARKLET
 ========================================================= */
 
-function generateBookmarklet() {
+function generateBookmarklet(){
 
-const data = {};
+const values={};
 
 
-detectedItems.forEach(
-item => {
+detected.forEach(item=>{
 
-if (
-item.erpItem
-) {
-
-data[item.erpItem] =
+values[item.erpItem]=
 String(item.erpQty);
-
-}
 
 });
 
 
-const payload =
-JSON.stringify(data);
+const json=
+JSON.stringify(values);
 
 
 /*
-This is the code that runs
-inside the ERP.
+ERP code.
+
+Important:
+we search table rows by text
+and then update the input.
+
+This is the same approach
+that worked in your original test.
 */
 
-const code = `
+const code=`
 
 (function(){
 
-var m=${payload};
+var m=${json};
 
 var d=document;
 
 var f=d.querySelector(
-'iframe, frame'
+'iframe,frame'
 );
 
 if(
@@ -1949,29 +2044,25 @@ d=f.contentDocument;
 
 }
 
-
-var rows =
+var rows=
 d.querySelectorAll('tr');
 
 var matched=0;
 
 var missing=[];
 
-
 Object.keys(m).forEach(
 function(k){
 
 var found=false;
-
 
 rows.forEach(
 function(r){
 
 if(found)return;
 
-
-var t =
-(r.innerText || "")
+var t=
+(r.innerText||"")
 .toLowerCase()
 .replace(/\\\\s+/g," ")
 .trim();
@@ -1983,48 +2074,41 @@ k.toLowerCase()
 )!==-1
 ){
 
-var input =
+var input=
 r.querySelector(
 'input[type="text"]'
 );
 
-
 if(input){
 
-input.value =
+input.value=
 m[k];
-
 
 input.focus();
 
-
 input.dispatchEvent(
 new Event(
-"input",
+'input',
 {bubbles:true}
 )
 );
 
-
 input.dispatchEvent(
 new Event(
-"change",
+'change',
 {bubbles:true}
 )
 );
 
-
 input.dispatchEvent(
 new Event(
-"blur",
+'blur',
 {bubbles:true}
 )
 );
 
-
-r.style.backgroundColor =
-"#d9ffd9";
-
+r.style.backgroundColor=
+'#d9ffd9';
 
 matched++;
 
@@ -2048,14 +2132,14 @@ missing.push(k);
 
 alert(
 
-"ERP AUTO FILL\\\\n\\\\n" +
+'ERP AUTO FILL\\\\n\\\\n'+
 
-"Matched: " +
-matched +
-" / " +
-Object.keys(m).length +
+'Matched: '+
+matched+
+' / '+
+Object.keys(m).length+
 
-"\\\\n\\\\n" +
+'\\\\n\\\\n'+
 
 (
 
@@ -2063,12 +2147,12 @@ missing.length
 
 ?
 
-"NOT FOUND:\\\\n" +
-missing.join("\\\\n")
+'NOT FOUND:\\\\n'+
+missing.join('\\\\n')
 
 :
 
-"All invoice items filled successfully."
+'All items filled successfully.'
 
 )
 
@@ -2079,27 +2163,27 @@ missing.join("\\\\n")
 `;
 
 
-const bookmarklet =
-"javascript:" +
+const bookmark=
+"javascript:"+
 code
 .replace(/\n/g," ")
 .replace(/\s+/g," ")
 .trim();
 
 
-window.generatedBookmarklet =
-bookmarklet;
+window.generatedBookmark=
+bookmark;
 
 
 document.getElementById(
-"bookmarkletBox"
-).textContent =
-bookmarklet;
+"bookmarkBox"
+).textContent=
+bookmark;
 
 
 document.getElementById(
 "bookmarkCard"
-).style.display =
+).style.display=
 "block";
 
 
@@ -2113,35 +2197,31 @@ behavior:"smooth"
 
 
 /* =========================================================
-   COPY BOOKMARKLET
+COPY
 ========================================================= */
 
-async function copyBookmarklet() {
+async function copyBookmarklet(){
 
-if (
-!window.generatedBookmarklet
-) {
+if(!window.generatedBookmark){
 
 generateBookmarklet();
 
 }
 
-
-try {
+try{
 
 await navigator.clipboard.writeText(
-window.generatedBookmarklet
+window.generatedBookmark
 );
 
 alert(
-"Bookmarklet copied successfully."
+"Bookmarklet copied."
 );
 
-}
-catch(error) {
+}catch(e){
 
 alert(
-"Copy failed. Please manually copy the bookmarklet."
+"Copy failed. Please manually copy it."
 );
 
 }
@@ -2150,124 +2230,55 @@ alert(
 
 
 /* =========================================================
-   STATUS
+CLEAR
 ========================================================= */
 
-function setStatus(text) {
+function clearAll(){
 
-const box =
-document.getElementById(
-"status"
-);
-
-if (!text) {
-
-box.style.display =
-"none";
-
-return;
-
-}
-
-box.textContent =
-text;
-
-box.style.display =
-"block";
-
-}
-
-
-/* =========================================================
-   PROGRESS
-========================================================= */
-
-function setProgress(value) {
-
-document.getElementById(
-"progressBar"
-).style.width =
-value + "%";
-
-}
-
-
-/* =========================================================
-   CLEAR
-========================================================= */
-
-function clearAll() {
-
-selectedFiles = [];
-
-detectedItems = [];
-
-allOCRText = "";
+files=[];
+detected=[];
+rawOCR="";
 
 document.getElementById(
 "fileInput"
-).value = "";
+).value="";
 
 document.getElementById(
 "fileList"
-).innerHTML = "";
+).innerHTML="";
+
+document.getElementById(
+"resultsBody"
+).innerHTML="";
 
 document.getElementById(
 "ocrText"
-).value = "";
+).value="";
 
 document.getElementById(
 "resultsCard"
-).style.display =
+).style.display=
 "none";
 
 document.getElementById(
 "bookmarkCard"
-).style.display =
+).style.display=
 "none";
 
-setProgress(0);
+progress(0);
 
-setStatus("");
+status("");
 
 }
 
 
 /* =========================================================
-   HELPERS
+HELPERS
 ========================================================= */
 
-function formatBytes(bytes) {
+function escapeHTML(value){
 
-if (!bytes)
-return "0 B";
-
-
-const units =
-["B","KB","MB","GB"];
-
-const i =
-Math.floor(
-Math.log(bytes) /
-Math.log(1024)
-);
-
-
-return (
-bytes /
-Math.pow(1024,i)
-).toFixed(1)
-+
-" "
-+
-units[i];
-
-}
-
-
-function escapeHTML(value) {
-
-return String(value || "")
+return String(value||"")
 .replace(/&/g,"&amp;")
 .replace(/</g,"&lt;")
 .replace(/>/g,"&gt;")
@@ -2277,27 +2288,23 @@ return String(value || "")
 }
 
 
-/* =========================================================
-   EXPOSE FUNCTIONS
-========================================================= */
-
-window.processFiles =
+window.processFiles=
 processFiles;
 
-window.removeFile =
+window.removeFile=
 removeFile;
 
-window.clearAll =
+window.clearAll=
 clearAll;
 
-window.generateBookmarklet =
+window.generateBookmarklet=
 generateBookmarklet;
 
-window.copyBookmarklet =
+window.copyBookmarklet=
 copyBookmarklet;
 
-window.updateQuantity =
-updateQuantity;
+window.updateQty=
+updateQty;
 
 </script>
 
