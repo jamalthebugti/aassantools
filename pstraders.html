@@ -1,0 +1,2954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>ERP Invoice Auto Filler</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#f3f6fa;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#182235;
+}
+
+.container{
+    max-width:1400px;
+    margin:25px auto;
+    padding:15px;
+}
+
+.header{
+    background:linear-gradient(135deg,#153b91,#2870dd);
+    color:white;
+    padding:28px;
+    border-radius:16px;
+    box-shadow:0 8px 25px #0002;
+    margin-bottom:20px;
+}
+
+.header h1{
+    margin:0 0 8px;
+}
+
+.header p{
+    margin:0;
+    opacity:.9;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:22px;
+    margin-bottom:20px;
+    box-shadow:0 4px 18px #0000000d;
+}
+
+.upload{
+    display:block;
+    border:2px dashed #668bd2;
+    border-radius:13px;
+    padding:35px 15px;
+    text-align:center;
+    cursor:pointer;
+    background:#f8faff;
+}
+
+.upload:hover{
+    background:#eef4ff;
+}
+
+.upload input{
+    display:none;
+}
+
+.icon{
+    font-size:42px;
+}
+
+button{
+    border:0;
+    border-radius:8px;
+    padding:11px 17px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.primary{
+    background:#2465d5;
+    color:white;
+}
+
+.primary:hover{
+    background:#174fae;
+}
+
+.secondary{
+    background:#e8edf6;
+    color:#21365d;
+}
+
+.danger{
+    background:#ffe1e1;
+    color:#a01919;
+}
+
+.success{
+    background:#d9f7e2;
+    color:#126b37;
+}
+
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:15px;
+}
+
+.file{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid #eee;
+    padding:10px;
+}
+
+.status{
+    display:none;
+    padding:12px;
+    border-radius:8px;
+    background:#eef4ff;
+    color:#214a97;
+    margin-top:15px;
+}
+
+.progress{
+    height:9px;
+    background:#e4e9f1;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:12px;
+}
+
+.progressBar{
+    height:100%;
+    width:0;
+    background:#2465d5;
+    transition:.2s;
+}
+
+.stats{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:15px;
+}
+
+.stat{
+    background:#f1f4f8;
+    padding:12px 18px;
+    border-radius:8px;
+    min-width:130px;
+}
+
+.stat strong{
+    display:block;
+    font-size:22px;
+}
+
+.info{
+    background:#fff8df;
+    border-left:4px solid #e0a500;
+    padding:14px;
+    line-height:1.55;
+    border-radius:7px;
+}
+
+.successInfo{
+    background:#effff4;
+    border-left:4px solid #20a457;
+    padding:14px;
+    line-height:1.55;
+    border-radius:7px;
+}
+
+.small{
+    color:#69758a;
+    font-size:11px;
+}
+
+.searchBox{
+    width:100%;
+    padding:11px 13px;
+    border:1px solid #cbd4e2;
+    border-radius:8px;
+    font-size:14px;
+    margin:15px 0;
+}
+
+.tableWrap{
+    overflow-x:auto;
+    border:1px solid #e4e8ef;
+    border-radius:10px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:850px;
+}
+
+th{
+    background:#edf2f9;
+    text-align:left;
+    padding:11px;
+    font-size:12px;
+    position:sticky;
+    top:0;
+    z-index:2;
+}
+
+td{
+    border-bottom:1px solid #e8ebf0;
+    padding:8px 10px;
+    font-size:13px;
+}
+
+tr.detected{
+    background:#f1fff4;
+}
+
+tr.review{
+    background:#fff9e7;
+}
+
+tr.empty{
+    background:white;
+}
+
+tr:hover{
+    background:#f4f8ff;
+}
+
+.qtyInput{
+    width:120px;
+    padding:8px;
+    border:1px solid #cbd4e2;
+    border-radius:6px;
+    font-size:14px;
+}
+
+.qtyInput:focus{
+    outline:none;
+    border-color:#2465d5;
+    box-shadow:0 0 0 3px #2465d520;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:bold;
+}
+
+.green{
+    color:#116c35;
+    background:#d7f5df;
+}
+
+.yellow{
+    color:#815d00;
+    background:#fff0b7;
+}
+
+.gray{
+    color:#586579;
+    background:#e9edf3;
+}
+
+.red{
+    color:#a00000;
+    background:#ffdada;
+}
+
+textarea{
+    width:100%;
+    min-height:220px;
+    border:1px solid #ccd5e3;
+    border-radius:8px;
+    padding:12px;
+    font-family:monospace;
+    font-size:12px;
+}
+
+.bookmark{
+    background:#101827;
+    color:#b9d7ff;
+    border-radius:9px;
+    padding:15px;
+    word-break:break-all;
+    max-height:300px;
+    overflow:auto;
+    font-family:monospace;
+    font-size:11px;
+    line-height:1.5;
+}
+
+.instructions{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:12px;
+    margin-top:15px;
+}
+
+.step{
+    background:#f5f8fc;
+    border:1px solid #e3e8f0;
+    border-radius:10px;
+    padding:15px;
+}
+
+.step strong{
+    display:block;
+    margin-bottom:6px;
+}
+
+.hidden{
+    display:none !important;
+}
+
+@media(max-width:750px){
+
+    .container{
+        margin:10px auto;
+        padding:10px;
+    }
+
+    .card{
+        padding:15px;
+    }
+
+    .header{
+        padding:20px;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<!-- =====================================================
+HEADER
+===================================================== -->
+
+<div class="header">
+
+<h1>ERP Invoice Auto Filler</h1>
+
+<p>
+Upload an invoice for automatic OCR detection, then review or manually enter
+any missing quantities before generating your ERP bookmarklet.
+</p>
+
+</div>
+
+
+<!-- =====================================================
+STEP 1
+===================================================== -->
+
+<div class="card">
+
+<h2>1. Upload Invoice</h2>
+
+<label class="upload">
+
+<input
+    id="fileInput"
+    type="file"
+    multiple
+    accept="image/*,.pdf">
+
+<div class="icon">📄</div>
+
+<strong>
+Click here to upload invoice
+</strong>
+
+<div class="small">
+Images and multi-page PDF invoices are supported.
+</div>
+
+</label>
+
+<div id="fileList"></div>
+
+<div class="actions">
+
+<button
+    class="primary"
+    onclick="processFiles()">
+
+🔍 Read Invoice
+
+</button>
+
+<button
+    class="secondary"
+    onclick="clearAll()">
+
+Clear
+
+</button>
+
+</div>
+
+<div
+    id="status"
+    class="status">
+</div>
+
+<div class="progress">
+
+<div
+    id="progressBar"
+    class="progressBar">
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+STEP 2
+===================================================== -->
+
+<div
+    class="card"
+    id="resultsCard">
+
+<h2>2. ERP Items & Quantities</h2>
+
+<div class="info">
+
+<strong>How this works:</strong>
+
+OCR will automatically fill quantities when it recognizes an invoice item.
+All ERP items are shown below, including items that OCR did not detect.
+
+You can manually enter or correct any quantity.
+
+<strong>
+Blank quantities will NOT be sent to the ERP.
+</strong>
+
+</div>
+
+<br>
+
+<div class="stats">
+
+<div class="stat">
+<strong id="totalItems">0</strong>
+ERP Items
+</div>
+
+<div class="stat">
+<strong id="detectedCount">0</strong>
+OCR Detected
+</div>
+
+<div class="stat">
+<strong id="manualCount">0</strong>
+Manual
+</div>
+
+<div class="stat">
+<strong id="filledCount">0</strong>
+Ready
+</div>
+
+</div>
+
+<input
+    id="searchBox"
+    class="searchBox"
+    type="text"
+    placeholder="🔎 Search ERP item..."
+    oninput="filterItems()">
+
+<div class="tableWrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>#</th>
+<th>ERP Item</th>
+<th>Quantity</th>
+<th>Source</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+<tbody id="itemsBody"></tbody>
+
+</table>
+
+</div>
+
+<div class="actions">
+
+<button
+    class="secondary"
+    onclick="fillAllDetected()">
+
+↻ Restore OCR Values
+
+</button>
+
+<button
+    class="secondary"
+    onclick="clearQuantities()">
+
+🧹 Clear Quantities
+
+</button>
+
+<button
+    class="primary"
+    onclick="generateBookmarklet()">
+
+🔗 Generate ERP Bookmarklet
+
+</button>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+STEP 3
+===================================================== -->
+
+<div
+    class="card"
+    id="bookmarkCard"
+    style="display:none">
+
+<h2>3. ERP Bookmarklet</h2>
+
+<div class="successInfo">
+
+<strong>Bookmarklet generated.</strong>
+
+Create a browser bookmark and paste the generated code into the bookmark's
+<strong>URL</strong> field.
+
+Then open your ERP item-entry page and click the bookmark once.
+
+Only items with a quantity entered will be filled.
+
+</div>
+
+<div class="instructions">
+
+<div class="step">
+
+<strong>1️⃣ Copy</strong>
+
+Click "Copy Bookmarklet".
+
+</div>
+
+<div class="step">
+
+<strong>2️⃣ Create Bookmark</strong>
+
+Create a new browser bookmark.
+
+</div>
+
+<div class="step">
+
+<strong>3️⃣ Paste</strong>
+
+Paste the JavaScript into the bookmark URL field.
+
+</div>
+
+<div class="step">
+
+<strong>4️⃣ Run</strong>
+
+Open your ERP page and click the bookmark.
+
+</div>
+
+</div>
+
+<br>
+
+<button
+    class="primary"
+    onclick="copyBookmarklet()">
+
+📋 Copy Bookmarklet
+
+</button>
+
+<br><br>
+
+<div
+    id="bookmarkBox"
+    class="bookmark">
+</div>
+
+</div>
+
+
+<!-- =====================================================
+RAW OCR
+===================================================== -->
+
+<div class="card">
+
+<h2>Raw OCR</h2>
+
+<div class="small">
+This is the raw text detected from your invoice. It is provided for
+verification if OCR makes a mistake.
+</div>
+
+<br>
+
+<textarea
+    id="ocrText"
+    placeholder="OCR output will appear here...">
+</textarea>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+/* =========================================================
+PDF.JS
+========================================================= */
+
+import * as pdfjsLib from
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+
+window.pdfjsLib = pdfjsLib;
+
+
+/* =========================================================
+ERP ITEMS
+========================================================= */
+
+window.erpItems = [
+
+"SWEET CORN",
+"SALT",
+"SUGAR",
+"F1 BOX",
+"P2",
+"P3",
+"FOOD SAFETY LINER L",
+"FOOD SAFETY LINER M",
+"DISPOSABLE FORK",
+"DISPOSABLE SPOON",
+"DIP WITH LID",
+"SAUCE LINER (10x18)",
+"THERMAL ROLL",
+"TOILET ROLL",
+"DUSTER",
+"MAX BAR",
+"SCOTCH BRITE",
+"STEEL WOOL",
+"MOP HEAD",
+"SURF",
+"NET CAP",
+"GARBAGE LINER",
+"DISPOSABLE APPRON",
+"DISPOSABLE GLASS",
+"JUMBO ROLL",
+"BEARD MASK",
+"HAND SANITIZER",
+"MOP HANDLE",
+"VIPER",
+"BROOM",
+"BALL PEN",
+"A4 PAPER",
+"MARKER",
+"STAPLLER PIN",
+"STAPLER MACHINE",
+"WEIGHT SCALE",
+"TEA BAG",
+"DUST COLLECTOR",
+"MILK POWDER",
+"NITRILE GLOVES",
+"DISP. GLOVES",
+"STAMP PAD INK",
+"THERMOMETER",
+"CARTON TAPE",
+"SOAP DISPENSER",
+"PORTIONING BAG",
+"AIR FRESHNER",
+"GARBAGE LINER SMALL",
+"BUCKET 25LIT",
+"FOOD SAFETY LINER M BLUE",
+"CLEANING HOLDER",
+"DISPOSABLE GLASS (PAPER)",
+"COMM STICKERS ROLL",
+"COMM STICKERS RIBBON",
+"WOODEN FORK",
+"WOODEN SPOON",
+"Weight Scale (LPG)",
+"Sealing Machine",
+"Washing Brush",
+"DIGITAL TEMPERATURE METER",
+"SMALL WEIGHT SCALE",
+"SCISSOR",
+"DOUBLE TAPE",
+"STEEL BROOM",
+"STEEL VIPER",
+"STEEL MOP HANDLE",
+"HARPIC GALLON",
+"HAND WASH LIQUID GALLON",
+"DISHWASH LIQUID GALLON",
+"GLIENT GALLON",
+"HAND SANITIZER GALLON",
+"PHENYL GALLON"
+
+];
+
+
+/* =========================================================
+ALIASES
+========================================================= */
+
+window.aliases = {
+
+"dust calctor":
+"DUST COLLECTOR",
+
+"dust collector":
+"DUST COLLECTOR",
+
+"dust collector with broom":
+"DUST COLLECTOR",
+
+"dust calctorwithbroom":
+"DUST COLLECTOR",
+
+"steel handle broom brush":
+"STEEL BROOM",
+
+"steel broom":
+"STEEL BROOM",
+
+"steel wool":
+"STEEL WOOL",
+
+"steel woll":
+"STEEL WOOL",
+
+"food safety liner medium":
+"FOOD SAFETY LINER M",
+
+"good safety liner medium":
+"FOOD SAFETY LINER M",
+
+"food safety liner m":
+"FOOD SAFETY LINER M",
+
+"air freshener refill":
+"AIR FRESHNER",
+
+"air freshener":
+"AIR FRESHNER",
+
+"air freshner":
+"AIR FRESHNER",
+
+"beard mask":
+"BEARD MASK",
+
+"dish washing liquid":
+"DISHWASH LIQUID GALLON",
+
+"dishwash liquid":
+"DISHWASH LIQUID GALLON",
+
+"hand wash liquid":
+"HAND WASH LIQUID GALLON",
+
+"hand wash liquid liters":
+"HAND WASH LIQUID GALLON",
+
+"mop head":
+"MOP HEAD",
+
+"examination nitrile gloves":
+"NITRILE GLOVES",
+
+"nitrile gloves":
+"NITRILE GLOVES",
+
+"scotch brite":
+"SCOTCH BRITE",
+
+"toilet roll":
+"TOILET ROLL",
+
+"looma toilet roll":
+"TOILET ROLL",
+
+"ball pen":
+"BALL PEN",
+
+"marker pen":
+"MARKER",
+
+"marker":
+"MARKER",
+
+"carton scotch tape":
+"CARTON TAPE",
+
+"carton tape":
+"CARTON TAPE",
+
+"garbage liner small":
+"GARBAGE LINER SMALL",
+
+"black net cap":
+"NET CAP",
+
+"disposable black net cap":
+"NET CAP",
+
+"net cap":
+"NET CAP",
+
+"surf":
+"SURF",
+
+"harpic":
+"HARPIC GALLON",
+
+"harpic toilet cleaner":
+"HARPIC GALLON",
+
+"phenyl":
+"PHENYL GALLON",
+
+"phynyle":
+"PHENYL GALLON",
+
+"stapler pins":
+"STAPLLER PIN",
+
+"stapller pins":
+"STAPLLER PIN"
+
+};
+
+
+/* =========================================================
+SPECIAL CONVERSIONS
+========================================================= */
+
+window.conversions = {
+
+"SURF":0.045,
+
+"NITRILE GLOVES":100
+
+};
+
+
+/* =========================================================
+NORMALIZE
+========================================================= */
+
+window.normalize = function(s){
+
+return String(s || "")
+.toLowerCase()
+.replace(/[^a-z0-9.]+/g," ")
+.replace(/\s+/g," ")
+.trim();
+
+};
+
+
+/* =========================================================
+LEVENSHTEIN
+========================================================= */
+
+window.levenshtein = function(a,b){
+
+a=normalize(a);
+b=normalize(b);
+
+const matrix=[];
+
+for(let i=0;i<=b.length;i++){
+    matrix[i]=[i];
+}
+
+for(let j=0;j<=a.length;j++){
+    matrix[0][j]=j;
+}
+
+for(let i=1;i<=b.length;i++){
+
+    for(let j=1;j<=a.length;j++){
+
+        matrix[i][j] =
+        b.charAt(i-1) === a.charAt(j-1)
+        ? matrix[i-1][j]
+        : Math.min(
+            matrix[i-1][j]+1,
+            matrix[i][j-1]+1,
+            matrix[i-1][j-1]+1
+        );
+
+    }
+
+}
+
+return matrix[b.length][a.length];
+
+};
+
+
+/* =========================================================
+SIMILARITY
+========================================================= */
+
+window.similarity = function(a,b){
+
+a=normalize(a);
+b=normalize(b);
+
+if(!a || !b)
+return 0;
+
+if(a===b)
+return 1;
+
+if(a.includes(b) || b.includes(a))
+return .92;
+
+const distance=
+levenshtein(a,b);
+
+return 1 -
+distance /
+Math.max(a.length,b.length);
+
+};
+
+
+/* =========================================================
+FIND ERP
+========================================================= */
+
+window.findERP = function(text){
+
+const n=
+normalize(text);
+
+
+/* aliases first */
+
+const aliasKeys=
+Object.keys(aliases)
+.sort(
+(a,b)=>
+normalize(b).length -
+normalize(a).length
+);
+
+for(const alias of aliasKeys){
+
+if(
+n.includes(normalize(alias))
+){
+
+return {
+name:aliases[alias],
+score:1,
+method:"alias"
+};
+
+}
+
+}
+
+
+/* exact ERP item */
+
+for(const item of erpItems){
+
+if(
+n.includes(normalize(item))
+){
+
+return {
+name:item,
+score:1,
+method:"exact"
+};
+
+}
+
+}
+
+
+/* fuzzy */
+
+let best=null;
+
+for(const item of erpItems){
+
+const score=
+similarity(n,item);
+
+if(
+!best ||
+score>best.score
+){
+
+best={
+name:item,
+score,
+method:"fuzzy"
+};
+
+}
+
+}
+
+if(
+best &&
+best.score>=.60
+){
+
+return best;
+
+}
+
+return null;
+
+};
+
+
+/* =========================================================
+CONVERT QUANTITY
+========================================================= */
+
+window.convertQuantity=function(item,qty){
+
+let q=parseFloat(qty);
+
+if(isNaN(q))
+return "";
+
+if(conversions[item]){
+    q*=conversions[item];
+}
+
+return Number(
+q.toFixed(6)
+);
+
+};
+
+</script>
+
+
+<script>
+
+/* =========================================================
+STATE
+========================================================= */
+
+let files=[];
+
+let detected=[];
+
+let rawOCR="";
+
+let itemData={};
+
+
+/* =========================================================
+INITIALIZE
+========================================================= */
+
+function initializeItems(){
+
+itemData={};
+
+erpItems.forEach(item=>{
+
+itemData[item]={
+
+item:item,
+
+qty:"",
+
+ocrQty:"",
+
+source:"",
+
+status:"empty",
+
+manual:false
+
+};
+
+});
+
+renderItems();
+
+}
+
+
+/* =========================================================
+FILE INPUT
+========================================================= */
+
+document
+.getElementById("fileInput")
+.addEventListener(
+"change",
+e=>{
+
+files=
+Array.from(e.target.files);
+
+renderFiles();
+
+});
+
+
+/* =========================================================
+FILES
+========================================================= */
+
+function renderFiles(){
+
+const box=
+document.getElementById("fileList");
+
+box.innerHTML="";
+
+files.forEach(
+(file,i)=>{
+
+const div=
+document.createElement("div");
+
+div.className="file";
+
+div.innerHTML=`
+
+<span>
+📄 ${escapeHTML(file.name)}
+</span>
+
+<button
+class="danger"
+onclick="removeFile(${i})">
+
+Remove
+
+</button>
+
+`;
+
+box.appendChild(div);
+
+});
+
+}
+
+
+function removeFile(i){
+
+files.splice(i,1);
+
+renderFiles();
+
+}
+
+
+/* =========================================================
+STATUS
+========================================================= */
+
+function status(text){
+
+const box=
+document.getElementById("status");
+
+box.textContent=text;
+
+box.style.display=
+text ? "block":"none";
+
+}
+
+
+function progress(v){
+
+document
+.getElementById("progressBar")
+.style.width=
+v+"%";
+
+}
+
+
+/* =========================================================
+PROCESS FILES
+========================================================= */
+
+async function processFiles(){
+
+if(!files.length){
+
+alert(
+"Please upload an invoice first."
+);
+
+return;
+
+}
+
+detected=[];
+rawOCR="";
+
+initializeItems();
+
+progress(0);
+
+let totalPages=0;
+
+
+/* count pages */
+
+for(const file of files){
+
+if(
+file.type==="application/pdf" ||
+file.name.toLowerCase().endsWith(".pdf")
+){
+
+const pdf=
+await pdfjsLib.getDocument({
+data:await file.arrayBuffer()
+}).promise;
+
+totalPages+=pdf.numPages;
+
+}else{
+
+totalPages++;
+
+}
+
+}
+
+
+let current=0;
+
+
+/* process */
+
+for(const file of files){
+
+if(
+file.type==="application/pdf" ||
+file.name.toLowerCase().endsWith(".pdf")
+){
+
+const pdf=
+await pdfjsLib.getDocument({
+data:await file.arrayBuffer()
+}).promise;
+
+
+for(
+let p=1;
+p<=pdf.numPages;
+p++
+){
+
+current++;
+
+status(
+`Reading ${file.name} — page ${p}/${pdf.numPages}`
+);
+
+
+const page=
+await pdf.getPage(p);
+
+const viewport=
+page.getViewport({
+scale:3
+});
+
+const canvas=
+document.createElement("canvas");
+
+canvas.width=
+viewport.width;
+
+canvas.height=
+viewport.height;
+
+const ctx=
+canvas.getContext("2d");
+
+await page.render({
+canvasContext:ctx,
+viewport
+}).promise;
+
+
+const ocr=
+await doOCR(canvas);
+
+
+rawOCR+=
+`\n===== ${file.name} PAGE ${p} =====\n`
++
+ocr.text;
+
+
+const rows=
+buildRows(ocr.data);
+
+const items=
+extractRows(
+rows,
+file.name,
+p
+);
+
+detected.push(...items);
+
+
+progress(
+Math.round(
+current/totalPages*100
+)
+);
+
+}
+
+}else{
+
+current++;
+
+status(
+`Reading ${file.name}`
+);
+
+
+const ocr=
+await doOCR(file);
+
+
+rawOCR+=
+`\n===== ${file.name} =====\n`
++
+ocr.text;
+
+
+const rows=
+buildRows(ocr.data);
+
+const items=
+extractRows(
+rows,
+file.name,
+1
+);
+
+detected.push(...items);
+
+
+progress(
+Math.round(
+current/totalPages*100
+)
+);
+
+}
+
+}
+
+
+/* combine OCR detections */
+
+detected=
+combine(detected);
+
+
+/* place OCR values into all items */
+
+detected.forEach(item=>{
+
+if(!itemData[item.erpItem])
+return;
+
+itemData[item.erpItem].qty=
+item.erpQty;
+
+itemData[item.erpItem].ocrQty=
+item.erpQty;
+
+itemData[item.erpItem].source=
+item.source;
+
+itemData[item.erpItem].status=
+item.confidence==="high"
+? "detected"
+: "review";
+
+itemData[item.erpItem].manual=false;
+
+});
+
+
+document
+.getElementById("ocrText")
+.value=
+rawOCR;
+
+
+renderItems();
+
+status(
+`Finished. OCR detected ${detected.length} ERP item(s).`
+);
+
+}
+
+
+/* =========================================================
+OCR
+========================================================= */
+
+async function doOCR(input){
+
+const result=
+await Tesseract.recognize(
+input,
+"eng",
+{
+
+logger:m=>{
+
+if(
+m.status==="recognizing text"
+){
+
+status(
+"OCR: "+
+Math.round(
+(m.progress||0)*100
+)+
+"%"
+);
+
+}
+
+}
+
+}
+);
+
+return {
+text:result.data.text,
+data:result.data
+};
+
+}
+
+
+/* =========================================================
+BUILD OCR ROWS
+========================================================= */
+
+function buildRows(data){
+
+const words=
+(data.words||[])
+.filter(w=>
+w.text &&
+w.text.trim()
+);
+
+const rows=[];
+
+for(const word of words){
+
+const y=
+word.bbox
+? word.bbox.y0
+:0;
+
+let row=
+rows.find(r=>
+Math.abs(r.y-y)<18
+);
+
+if(!row){
+
+row={
+y:y,
+words:[]
+};
+
+rows.push(row);
+
+}else{
+
+row.words.push(word);
+
+}
+
+}
+
+rows.sort(
+(a,b)=>a.y-b.y
+);
+
+for(const row of rows){
+
+row.words.sort(
+(a,b)=>
+(a.bbox?.x0||0) -
+(b.bbox?.x0||0)
+);
+
+row.text=
+row.words
+.map(w=>w.text)
+.join(" ");
+
+}
+
+return rows;
+
+}
+
+
+/* =========================================================
+NUMBER
+========================================================= */
+
+function parseOCRNumber(raw){
+
+if(!raw)
+return null;
+
+let s=
+String(raw)
+.replace(/,/g,"")
+.trim();
+
+s=s.replace(/\s+/g,"");
+
+if(
+!/^\d+(?:\.\d+)?$/.test(s)
+)
+return null;
+
+const n=
+parseFloat(s);
+
+return isNaN(n)
+? null
+:n;
+
+}
+
+
+/* =========================================================
+GET QUANTITY
+========================================================= */
+
+function getQuantity(row){
+
+const text=
+row.text
+.replace(/\|/g," ")
+.replace(/\s+/g," ")
+.trim();
+
+
+const patterns=[
+
+/(\d+(?:\.\d+)?)\s*(units?|uts|unis|iits|iis|unlts)\b/i,
+
+/(\d+(?:\.\d+)?)\s*(pcs?|pieces?)\b/i,
+
+/(\d+(?:\.\d+)?)\s*(nos?|numbers?)\b/i
+
+];
+
+
+for(const pattern of patterns){
+
+const m=
+text.match(pattern);
+
+if(m){
+
+const q=
+parseOCRNumber(m[1]);
+
+if(q!==null){
+
+return {
+qty:q,
+confidence:"high",
+source:m[0]
+};
+
+}
+
+}
+
+}
+
+
+/* decimal repair */
+
+const compact=
+text.match(
+/(\d+)\s+(\d{3})\s*(units?|uts|unis|iis)\b/i
+);
+
+if(compact){
+
+const q=
+parseFloat(
+compact[1]+"."+compact[2]
+);
+
+if(!isNaN(q)){
+
+return {
+qty:q,
+confidence:"medium",
+source:compact[0]
+};
+
+}
+
+}
+
+
+/* OCR 1200 ts -> 12 */
+
+const threeDigitOCR=
+text.match(
+/\b(\d{3,4})\s*(?:uts|unis|iis|ts)\b/i
+);
+
+if(threeDigitOCR){
+
+const n=
+parseInt(
+threeDigitOCR[1],
+10
+);
+
+if(
+n>=100 &&
+n<=9999
+){
+
+return {
+
+qty:n/100,
+
+confidence:"medium",
+
+source:
+threeDigitOCR[0]+
+" [OCR decimal repair]"
+
+};
+
+}
+
+}
+
+return null;
+
+}
+
+
+/* =========================================================
+EXTRACT
+========================================================= */
+
+function extractRows(
+rows,
+file,
+page
+){
+
+const results=[];
+
+
+for(let i=0;i<rows.length;i++){
+
+const row=
+rows[i];
+
+let item=
+findERP(row.text);
+
+let quantity=
+getQuantity(row);
+
+
+/* item and quantity same row */
+
+if(item && !quantity){
+
+for(
+let j=1;
+j<=4;
+j++
+){
+
+if(!rows[i+j])
+continue;
+
+const q=
+getQuantity(
+rows[i+j]
+);
+
+if(q){
+
+quantity=q;
+
+break;
+
+}
+
+}
+
+}
+
+
+/* quantity then item */
+
+if(!item && quantity){
+
+for(
+let j=1;
+j<=4;
+j++
+){
+
+if(!rows[i+j])
+continue;
+
+const candidate=
+findERP(
+rows[i+j].text
+);
+
+if(candidate){
+
+item=candidate;
+
+break;
+
+}
+
+}
+
+}
+
+
+if(item && quantity){
+
+results.push({
+
+invoiceText:
+row.text,
+
+erpItem:
+item.name,
+
+invoiceQty:
+quantity.qty,
+
+erpQty:
+convertQuantity(
+item.name,
+quantity.qty
+),
+
+confidence:
+quantity.confidence,
+
+source:
+file+" page "+page
+
+});
+
+}
+
+}
+
+
+/* second pass */
+
+for(let i=0;i<rows.length;i++){
+
+const item=
+findERP(rows[i].text);
+
+if(!item)
+continue;
+
+const already=
+results.some(
+r=>
+r.erpItem===item.name &&
+r.source===
+file+" page "+page
+);
+
+if(already)
+continue;
+
+
+for(
+let j=1;
+j<=5;
+j++
+){
+
+if(!rows[i+j])
+continue;
+
+const q=
+getQuantity(rows[i+j]);
+
+if(q){
+
+results.push({
+
+invoiceText:
+rows[i].text,
+
+erpItem:
+item.name,
+
+invoiceQty:
+q.qty,
+
+erpQty:
+convertQuantity(
+item.name,
+q.qty
+),
+
+confidence:"medium",
+
+source:
+file+" page "+page
+
+});
+
+break;
+
+}
+
+}
+
+}
+
+
+return results;
+
+}
+
+
+/* =========================================================
+COMBINE OCR
+========================================================= */
+
+function combine(items){
+
+const map={};
+
+
+for(const item of items){
+
+const key=
+item.erpItem.toUpperCase();
+
+if(!map[key]){
+
+map[key]={
+...item
+};
+
+}else{
+
+map[key].invoiceQty+=
+item.invoiceQty;
+
+map[key].erpQty=
+convertQuantity(
+item.erpItem,
+map[key].invoiceQty
+);
+
+if(
+item.confidence!=="high"
+){
+
+map[key].confidence=
+"medium";
+
+}
+
+}
+
+}
+
+
+return Object.values(map);
+
+}
+
+
+/* =========================================================
+RENDER ALL ERP ITEMS
+========================================================= */
+
+function renderItems(){
+
+const body=
+document.getElementById("itemsBody");
+
+body.innerHTML="";
+
+
+const search=
+normalize(
+document.getElementById("searchBox")
+?.value || ""
+);
+
+
+erpItems.forEach(
+(item,index)=>{
+
+const data=
+itemData[item] ||
+{
+item,
+qty:"",
+ocrQty:"",
+source:"",
+status:"empty",
+manual:false
+};
+
+
+if(
+search &&
+!normalize(item).includes(search)
+){
+
+return;
+
+}
+
+
+const tr=
+document.createElement("tr");
+
+
+if(data.status==="detected"){
+
+tr.className="detected";
+
+}else if(data.status==="review"){
+
+tr.className="review";
+
+}else{
+
+tr.className="empty";
+
+}
+
+
+let badge="";
+
+if(data.manual){
+
+badge=
+'<span class="badge green">MANUAL</span>';
+
+}else if(
+data.status==="detected"
+){
+
+badge=
+'<span class="badge green">OCR DETECTED</span>';
+
+}else if(
+data.status==="review"
+){
+
+badge=
+'<span class="badge yellow">OCR REVIEW</span>';
+
+}else{
+
+badge=
+'<span class="badge gray">NOT DETECTED</span>';
+
+}
+
+
+tr.innerHTML=`
+
+<td>
+${index+1}
+</td>
+
+<td>
+<strong>
+${escapeHTML(item)}
+</strong>
+</td>
+
+<td>
+
+<input
+class="qtyInput"
+type="number"
+step="any"
+min="0"
+value="${escapeHTML(data.qty)}"
+placeholder="Enter qty"
+oninput="manualQuantityChange('${escapeJS(item)}',this.value)">
+
+</td>
+
+<td class="small">
+${escapeHTML(data.source || "—")}
+</td>
+
+<td>
+${badge}
+</td>
+
+`;
+
+body.appendChild(tr);
+
+});
+
+
+updateStats();
+
+}
+
+
+/* =========================================================
+MANUAL QUANTITY
+========================================================= */
+
+function manualQuantityChange(
+item,
+value
+){
+
+if(!itemData[item]){
+
+itemData[item]={
+
+item:item,
+qty:"",
+ocrQty:"",
+source:"",
+status:"empty",
+manual:false
+
+};
+
+}
+
+
+if(
+value!=="" &&
+value!==itemData[item].ocrQty
+){
+
+itemData[item].qty=
+value;
+
+itemData[item].manual=true;
+
+itemData[item].status=
+"manual";
+
+}else{
+
+itemData[item].qty=
+value;
+
+if(
+value==="" &&
+itemData[item].ocrQty===""
+){
+
+itemData[item].manual=false;
+
+itemData[item].status=
+"empty";
+
+}
+
+}
+
+
+updateStats();
+
+}
+
+
+/* =========================================================
+STATS
+========================================================= */
+
+function updateStats(){
+
+let detectedCount=0;
+let manualCount=0;
+let filledCount=0;
+
+
+erpItems.forEach(item=>{
+
+const d=
+itemData[item];
+
+if(!d)
+return;
+
+if(
+d.status==="detected" ||
+d.status==="review"
+){
+
+detectedCount++;
+
+}
+
+if(d.manual){
+
+manualCount++;
+
+}
+
+if(
+d.qty!=="" &&
+d.qty!==null &&
+d.qty!==undefined &&
+!isNaN(parseFloat(d.qty))
+){
+
+filledCount++;
+
+}
+
+});
+
+
+document.getElementById(
+"totalItems"
+).textContent=
+erpItems.length;
+
+document.getElementById(
+"detectedCount"
+).textContent=
+detectedCount;
+
+document.getElementById(
+"manualCount"
+).textContent=
+manualCount;
+
+document.getElementById(
+"filledCount"
+).textContent=
+filledCount;
+
+}
+
+
+/* =========================================================
+SEARCH
+========================================================= */
+
+function filterItems(){
+
+renderItems();
+
+}
+
+
+/* =========================================================
+RESTORE OCR
+========================================================= */
+
+function fillAllDetected(){
+
+erpItems.forEach(item=>{
+
+const d=
+itemData[item];
+
+if(
+d &&
+d.ocrQty!==""
+){
+
+d.qty=
+d.ocrQty;
+
+d.manual=false;
+
+d.status=
+"detection";
+
+}
+
+});
+
+renderItems();
+
+}
+
+
+/* =========================================================
+CLEAR QUANTITIES
+========================================================= */
+
+function clearQuantities(){
+
+if(
+!confirm(
+"Clear all entered quantities?"
+)
+){
+
+return;
+
+}
+
+
+erpItems.forEach(item=>{
+
+if(!itemData[item])
+return;
+
+itemData[item].qty="";
+
+itemData[item].manual=false;
+
+if(itemData[item].ocrQty){
+
+itemData[item].status=
+"detected";
+
+}else{
+
+itemData[item].status=
+"empty";
+
+}
+
+});
+
+renderItems();
+
+}
+
+
+/* =========================================================
+GENERATE BOOKMARKLET
+========================================================= */
+
+function generateBookmarklet(){
+
+const values={};
+
+
+erpItems.forEach(item=>{
+
+const d=
+itemData[item];
+
+if(!d)
+return;
+
+
+const qty=
+parseFloat(d.qty);
+
+
+/*
+Only send real quantities.
+Blank items are ignored.
+*/
+
+if(
+d.qty!=="" &&
+!isNaN(qty)
+){
+
+values[item]=
+String(
+convertQuantity(item,qty)
+);
+
+}
+
+});
+
+
+const keys=
+Object.keys(values);
+
+
+if(!keys.length){
+
+alert(
+"Please enter at least one quantity."
+);
+
+return;
+
+}
+
+
+const json=
+JSON.stringify(values);
+
+
+/*
+IMPORTANT ERP BOOKMARKLET
+
+This code:
+
+1. Finds ERP table rows.
+2. Searches the row text for the ERP item name.
+3. Finds a text input inside that row.
+4. Inserts the quantity.
+5. Fires input/change/blur events.
+6. Highlights successfully filled rows.
+7. Reports missing items.
+
+It also tries iframe content when accessible.
+*/
+
+const code=`
+
+(function(){
+
+var m=${json};
+
+var d=document;
+
+var matched=0;
+
+var missing=[];
+
+
+/*
+Try same-page document first.
+*/
+
+var documents=[d];
+
+
+/*
+Try accessible iframes.
+*/
+
+try{
+
+var frames=
+d.querySelectorAll('iframe,frame');
+
+frames.forEach(function(frame){
+
+try{
+
+if(frame.contentDocument){
+
+documents.push(
+frame.contentDocument
+);
+
+}
+
+}catch(e){}
+
+});
+
+}catch(e){}
+
+
+/*
+Find the ERP row.
+*/
+
+function findRow(doc,item){
+
+var rows=
+doc.querySelectorAll('tr');
+
+for(
+var i=0;
+i<rows.length;
+i++
+){
+
+var row=rows[i];
+
+var text=
+(row.innerText||"")
+.toLowerCase()
+.replace(/\\\\s+/g," ")
+.trim();
+
+if(
+text.indexOf(
+item.toLowerCase()
+)!==-1
+){
+
+return row;
+
+}
+
+}
+
+return null;
+
+}
+
+
+/*
+Find input inside row.
+*/
+
+function findInput(row){
+
+if(!row)
+return null;
+
+
+/*
+Preferred input.
+*/
+
+var input=
+row.querySelector(
+'input[type="text"], input[type="number"]'
+);
+
+if(input)
+return input;
+
+
+/*
+Fallback: any input.
+*/
+
+input=
+row.querySelector(
+'input'
+);
+
+if(input)
+return input;
+
+return null;
+
+}
+
+
+/*
+Fill each item.
+*/
+
+Object.keys(m).forEach(
+function(item){
+
+var found=false;
+
+
+for(
+var x=0;
+x<documents.length;
+x++
+){
+
+var row=
+findRow(
+documents[x],
+item
+);
+
+if(!row)
+continue;
+
+
+var input=
+findInput(row);
+
+if(!input)
+continue;
+
+
+try{
+
+/*
+Use native setter where possible.
+This helps React/Vue/Angular style inputs.
+*/
+
+var prototype=
+Object.getPrototypeOf(input);
+
+var descriptor=
+Object.getOwnPropertyDescriptor(
+prototype,
+'value'
+);
+
+if(
+descriptor &&
+descriptor.set
+){
+
+descriptor.set.call(
+input,
+m[item]
+);
+
+}else{
+
+input.value=
+m[item];
+
+}
+
+
+/*
+Trigger common ERP events.
+*/
+
+input.dispatchEvent(
+new Event(
+'input',
+{bubbles:true}
+)
+);
+
+input.dispatchEvent(
+new Event(
+'change',
+{bubbles:true}
+)
+);
+
+input.dispatchEvent(
+new Event(
+'blur',
+{bubbles:true}
+)
+);
+
+
+/*
+Highlight.
+*/
+
+row.style.backgroundColor=
+'#d9ffd9';
+
+row.style.outline=
+'2px solid #35a853';
+
+matched++;
+
+found=true;
+
+break;
+
+}catch(e){
+
+/*
+Try simple assignment as fallback.
+*/
+
+try{
+
+input.value=
+m[item];
+
+input.dispatchEvent(
+new Event(
+'input',
+{bubbles:true}
+)
+);
+
+input.dispatchEvent(
+new Event(
+'change',
+{bubbles:true}
+)
+);
+
+row.style.backgroundColor=
+'#d9ffd9';
+
+matched++;
+
+found=true;
+
+break;
+
+}catch(e2){}
+
+}
+
+}
+
+
+if(!found){
+
+missing.push(item);
+
+}
+
+});
+
+
+/*
+Result message.
+*/
+
+var message=
+'ERP AUTO FILL\\\\n\\\\n'+
+'Items to fill: '+
+Object.keys(m).length+
+'\\\\n'+
+'Matched: '+
+matched+
+'\\\\n'+
+'Missing: '+
+missing.length;
+
+
+if(missing.length){
+
+message+=
+'\\\\n\\\\nNOT FOUND:\\\\n'+
+missing.join('\\\\n');
+
+}else{
+
+message+=
+'\\\\n\\\\nAll selected items filled successfully.';
+
+}
+
+
+alert(message);
+
+})();
+
+`;
+
+
+/*
+Convert multiline JS into bookmark URL.
+*/
+
+const bookmark=
+"javascript:"+
+code
+.replace(/\n/g," ")
+.replace(/\s+/g," ")
+.trim();
+
+
+window.generatedBookmark=
+bookmark;
+
+
+document.getElementById(
+"bookmarkBox"
+).textContent=
+bookmark;
+
+
+document.getElementById(
+"bookmarkCard"
+).style.display=
+"block";
+
+
+document.getElementById(
+"bookmarkCard"
+).scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+
+/* =========================================================
+COPY BOOKMARK
+========================================================= */
+
+async function copyBookmarklet(){
+
+if(!window.generatedBookmark){
+
+generateBookmarklet();
+
+}
+
+if(!window.generatedBookmark)
+return;
+
+
+try{
+
+await navigator.clipboard.writeText(
+window.generatedBookmark
+);
+
+alert(
+"Bookmarklet copied successfully."
+);
+
+}catch(e){
+
+/*
+Fallback for older browsers.
+*/
+
+const temp=
+document.createElement("textarea");
+
+temp.value=
+window.generatedBookmark;
+
+document.body.appendChild(temp);
+
+temp.select();
+
+try{
+
+document.execCommand("copy");
+
+alert(
+"Bookmarklet copied successfully."
+);
+
+}catch(err){
+
+alert(
+"Copy failed. Please manually copy the bookmarklet."
+);
+
+}
+
+document.body.removeChild(temp);
+
+}
+
+}
+
+
+/* =========================================================
+CLEAR EVERYTHING
+========================================================= */
+
+function clearAll(){
+
+files=[];
+detected=[];
+rawOCR="";
+
+initializeItems();
+
+document.getElementById(
+"fileInput"
+).value="";
+
+document.getElementById(
+"fileList"
+).innerHTML="";
+
+document.getElementById(
+"ocrText"
+).value="";
+
+document.getElementById(
+"bookmarkCard"
+).style.display=
+"none";
+
+document.getElementById(
+"bookmarkBox"
+).textContent="";
+
+window.generatedBookmark="";
+
+progress(0);
+
+status("");
+
+}
+
+
+/* =========================================================
+ESCAPE HTML
+========================================================= */
+
+function escapeHTML(value){
+
+return String(value||"")
+.replace(/&/g,"&amp;")
+.replace(/</g,"&lt;")
+.replace(/>/g,"&gt;")
+.replace(/"/g,"&quot;")
+.replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+ESCAPE JS
+========================================================= */
+
+function escapeJS(value){
+
+return String(value||"")
+.replace(/\\/g,"\\\\")
+.replace(/'/g,"\\'")
+.replace(/\n/g,"\\n")
+.replace(/\r/g,"\\r");
+
+}
+
+
+/* =========================================================
+INITIAL LOAD
+========================================================= */
+
+initializeItems();
+
+
+/* =========================================================
+GLOBAL FUNCTIONS
+========================================================= */
+
+window.processFiles=
+processFiles;
+
+window.removeFile=
+removeFile;
+
+window.clearAll=
+clearAll;
+
+window.generateBookmarklet=
+generateBookmarklet;
+
+window.copyBookmarklet=
+copyBookmarklet;
+
+window.manualQuantityChange=
+manualQuantityChange;
+
+window.filterItems=
+filterItems;
+
+window.fillAllDetected=
+fillAllDetected;
+
+window.clearQuantities=
+clearQuantities;
+
+</script>
+
+</body>
+</html>
