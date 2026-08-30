@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP Invoice Auto Filler</title>
+
+<!-- OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<!-- PDF rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
+        type="module"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f4f7fb;
+        color: #172033;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 35px auto;
+        padding: 20px;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #173b8f, #2463d4);
+        color: white;
+        padding: 28px;
+        border-radius: 16px;
+        margin-bottom: 22px;
+        box-shadow: 0 8px 25px rgba(0,0,0,.12);
+    }
+
+    .header h1 {
+        margin: 0 0 8px;
+        font-size: 28px;
+    }
+
+    .header p {
+        margin: 0;
+        opacity: .9;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 18px rgba(0,0,0,.07);
+    }
+
+    .upload {
+        border: 2px dashed #7194d7;
+        border-radius: 14px;
+        padding: 35px 20px;
+        text-align: center;
+        background: #f8faff;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .upload:hover {
+        background: #eef4ff;
+        border-color: #2463d4;
+    }
+
+    .upload input {
+        display: none;
+    }
+
+    .upload-icon {
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 9px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .primary {
+        background: #2463d4;
+        color: white;
+    }
+
+    .primary:hover {
+        background: #174fae;
+    }
+
+    .secondary {
+        background: #e9eef8;
+        color: #1b315f;
+    }
+
+    .danger {
+        background: #ffe5e5;
+        color: #b42318;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .files {
+        margin-top: 15px;
+    }
+
+    .file {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .file:last-child {
+        border-bottom: 0;
+    }
+
+    .status {
+        padding: 13px;
+        border-radius: 9px;
+        background: #eef4ff;
+        color: #214b99;
+        margin-top: 15px;
+        display: none;
+    }
+
+    .progress {
+        width: 100%;
+        height: 10px;
+        background: #e5eaf2;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 12px;
+    }
+
+    .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: #2463d4;
+        transition: width .2s;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th {
+        background: #edf2fa;
+        text-align: left;
+        padding: 11px;
+        font-size: 13px;
+    }
+
+    td {
+        padding: 9px 11px;
+        border-bottom: 1px solid #e8ebf0;
+        font-size: 13px;
+    }
+
+    tr.matched {
+        background: #f1fff4;
+    }
+
+    tr.warning {
+        background: #fff8e6;
+    }
+
+    tr.error {
+        background: #fff0f0;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        border: 1px solid #cdd5e2;
+        border-radius: 6px;
+        padding: 8px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .green {
+        background: #d8f7df;
+        color: #16733b;
+    }
+
+    .yellow {
+        background: #fff0bd;
+        color: #8a6400;
+    }
+
+    .red {
+        background: #ffdada;
+        color: #a31919;
+    }
+
+    .small {
+        color: #68748a;
+        font-size: 12px;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 180px;
+        border: 1px solid #ccd5e3;
+        border-radius: 9px;
+        padding: 12px;
+        font-family: monospace;
+        font-size: 12px;
+        resize: vertical;
+    }
+
+    .bookmarklet-box {
+        background: #111827;
+        color: #d1e4ff;
+        border-radius: 10px;
+        padding: 15px;
+        word-break: break-all;
+        max-height: 180px;
+        overflow: auto;
+        font-family: monospace;
+        font-size: 11px;
+    }
+
+    .instructions {
+        background: #fff9e8;
+        border-left: 4px solid #e3a700;
+        padding: 15px;
+        border-radius: 7px;
+        line-height: 1.6;
+    }
+
+    .stats {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
+
+    .stat {
+        padding: 12px 16px;
+        background: #f3f6fb;
+        border-radius: 9px;
+    }
+
+    .stat strong {
+        display: block;
+        font-size: 21px;
+    }
+
+    @media(max-width:700px) {
+        .container {
+            margin: 10px auto;
+            padding: 10px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+        }
+
+        table {
+            font-size: 11px;
+        }
+
+        th, td {
+            padding: 7px;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>ERP Invoice Auto Filler</h1>
+        <p>Upload invoice pages → extract quantities → generate ERP bookmarklet</p>
+    </div>
+
+    <div class="card">
+
+        <h2>1. Upload Invoice</h2>
+
+        <label class="upload">
+            <input
+                id="fileInput"
+                type="file"
+                multiple
+                accept="image/*,.pdf"
+            >
+
+            <div class="upload-icon">📄</div>
+
+            <strong>Click to upload invoice</strong>
+
+            <div class="small">
+                You can select multiple images or PDF files.
+            </div>
+        </label>
+
+        <div id="fileList" class="files"></div>
+
+        <div class="actions">
+            <button class="primary" onclick="processFiles()">
+                🔍 Read Invoice
+            </button>
+
+            <button class="secondary" onclick="clearAll()">
+                Clear
+            </button>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="progress">
+            <div id="progressBar" class="progress-bar"></div>
+        </div>
+
+    </div>
+
+
+    <div class="card" id="resultsCard" style="display:none;">
+
+        <h2>2. Detected Items</h2>
+
+        <div class="stats">
+            <div class="stat">
+                <strong id="totalCount">0</strong>
+                Total
+            </div>
+
+            <div class="stat">
+                <strong id="matchedCount">0</strong>
+                Matched
+            </div>
+
+            <div class="stat">
+                <strong id="warningCount">0</strong>
+                Review
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Invoice Item</th>
+                    <th>Invoice Qty</th>
+                    <th>ERP Item</th>
+                    <th>ERP Qty</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody id="resultsBody"></tbody>
+        </table>
+
+        <div class="actions">
+            <button class="primary" onclick="generateBookmarklet()">
+                🔗 Generate ERP Bookmarklet
+            </button>
+        </div>
+
+    </div>
+
+
+    <div class="card" id="bookmarkCard" style="display:none;">
+
+        <h2>3. ERP Bookmarklet</h2>
+
+        <div class="instructions">
+            <strong>First-time setup:</strong><br>
+            Create a Chrome bookmark and paste the generated code below into
+            the bookmark's <strong>URL</strong> field.
+            <br><br>
+            After that, open your ERP Purchase Order page and click the bookmark.
+            The matching quantity fields will be filled automatically.
+        </div>
+
+        <br>
+
+        <button class="primary" onclick="copyBookmarklet()">
+            📋 Copy Bookmarklet
+        </button>
+
+        <div style="height:10px;"></div>
+
+        <div id="bookmarkletBox" class="bookmarklet-box"></div>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>OCR Text</h2>
+
+        <p class="small">
+            This is the raw text detected from all uploaded invoice pages.
+            It is useful for checking OCR accuracy.
+        </p>
+
+        <textarea id="ocrText" placeholder="OCR text will appear here..."></textarea>
+
+    </div>
+
+</div>
+
+
+<script type="module">
+
+/* ============================================================
+   PDF.JS
+   ============================================================ */
+
+import * as pdfjsLib from
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+
+window.pdfjsLib = pdfjsLib;
+
+
+/* ============================================================
+   ERP MASTER ITEM LIST
+   ============================================================ */
+
+window.erpItems = [
+
+"SWEET CORN",
+"SALT",
+"SUGAR",
+"F1 BOX",
+"P2",
+"P3",
+"FOOD SAFETY LINER L",
+"FOOD SAFETY LINER M",
+"DISPOSABLE FORK",
+"DISPOSABLE SPOON",
+"DIP WITH LID",
+"SAUCE LINER (10x18)",
+"THERMAL ROLL",
+"TOILET ROLL",
+"DUSTER",
+"MAX BAR",
+"SCOTCH BRITE",
+"STEEL WOOL",
+"MOP HEAD",
+"SURF",
+"NET CAP",
+"GARBAGE LINER",
+"DISPOSABLE APPRON",
+"DISPOSABLE GLASS",
+"JUMBO ROLL",
+"BEARD MASK",
+"HAND SANITIZER",
+"MOP HANDLE",
+"VIPER",
+"BROOM",
+"BALL PEN",
+"A4 PAPER",
+"MARKER",
+"STAPLLER PIN",
+"STAPLER MACHINE",
+"WEIGHT SCALE",
+"TEA BAG",
+"DUST COLLECTOR",
+"MILK POWDER",
+"NITRILE GLOVES",
+"DISP. GLOVES",
+"STAMP PAD INK",
+"THERMOMETER",
+"CARTON TAPE",
+"SOAP DISPENSER",
+"PORTIONING BAG",
+"AIR FRESHNER",
+"GARBAGE LINER SMALL",
+"BUCKET 25LIT",
+"FOOD SAFETY LINER M BLUE",
+"CLEANING HOLDER",
+"DISPOSABLE GLASS (PAPER)",
+"COMM STICKERS ROLL",
+"COMM STICKERS RIBBON",
+"WOODEN FORK",
+"WOODEN SPOON",
+"Weight Scale (LPG)",
+"Sealing Machine",
+"Washing Brush",
+"DIGITAL TEMPERATURE METER",
+"SMALL WEIGHT SCALE",
+"SCISSOR",
+"DOUBLE TAPE",
+"STEEL BROOM",
+"STEEL VIPER",
+"STEEL MOP HANDLE",
+"HARPIC GALLON",
+"HAND WASH LIQUID GALLON",
+"DISHWASH LIQUID GALLON",
+"GLIENT GALLON",
+"HAND SANITIZER GALLON",
+"PHENYL GALLON"
+
+];
+
+
+/* ============================================================
+   INVOICE NAME → ERP NAME
+   ============================================================ */
+
+window.aliases = {
+
+    "food safety liner medium":
+        "FOOD SAFETY LINER M",
+
+    "food safety liner m":
+        "FOOD SAFETY LINER M",
+
+    "air freshener":
+        "AIR FRESHNER",
+
+    "air freshener refill":
+        "AIR FRESHNER",
+
+    "air freshner":
+        "AIR FRESHNER",
+
+    "broom":
+        "BROOM",
+
+    "duster":
+        "DUSTER",
+
+    "garbage liner small":
+        "GARBAGE LINER SMALL",
+
+    "garbage liner (small)":
+        "GARBAGE LINER SMALL",
+
+    "glint":
+        "GLIENT GALLON",
+
+    "glient":
+        "GLIENT GALLON",
+
+    "hand wash liquid":
+        "HAND WASH LIQUID GALLON",
+
+    "harpic":
+        "HARPIC GALLON",
+
+    "harpic toilet cleaner":
+        "HARPIC GALLON",
+
+    "harpic toilet cleaner concentrate":
+        "HARPIC GALLON",
+
+    "jumbo roll":
+        "JUMBO ROLL",
+
+    "dish washing liquid":
+        "DISHWASH LIQUID GALLON",
+
+    "dishwash liquid":
+        "DISHWASH LIQUID GALLON",
+
+    "mop head":
+        "MOP HEAD",
+
+    "examination nitrile gloves":
+        "NITRILE GLOVES",
+
+    "nitrile gloves":
+        "NITRILE GLOVES",
+
+    "phenyl":
+        "PHENYL GALLON",
+
+    "phynyle":
+        "PHENYL GALLON",
+
+    "scotch brite":
+        "SCOTCH BRITE",
+
+    "steel wool":
+        "STEEL WOOL",
+
+    "salt excel":
+        "SALT",
+
+    "thermal roll":
+        "THERMAL ROLL",
+
+    "stapler pins":
+        "STAPLLER PIN",
+
+    "stapller pins":
+        "STAPLLER PIN",
+
+    "ball pen":
+        "BALL PEN",
+
+    "marker":
+        "MARKER",
+
+    "marker pen":
+        "MARKER",
+
+    "surf":
+        "SURF",
+
+    "net cap":
+        "NET CAP",
+
+    "beard mask":
+        "BEARD MASK",
+
+    "toilet roll":
+        "TOILET ROLL",
+
+    "carton tape":
+        "CARTON TAPE"
+
+};
+
+
+/* ============================================================
+   SPECIAL QUANTITY CONVERSIONS
+   ============================================================
+
+   Example:
+   Invoice SURF = 20
+   ERP SURF = 20 × 0.045 = 0.9
+
+   Invoice NITRILE GLOVES = 3
+   ERP NITRILE GLOVES = 3 × 100 = 300
+*/
+
+window.conversions = {
+
+    "SURF": 0.045,
+
+    "NITRILE GLOVES": 100
+
+};
+
+
+/* ============================================================
+   NORMALIZE TEXT
+   ============================================================ */
+
+window.normalize = function(text) {
+
+    return String(text || "")
+        .toLowerCase()
+        .replace(/[()[\],.:;]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+};
+
+
+/* ============================================================
+   FIND ERP MATCH
+   ============================================================ */
+
+window.findERPMatch = function(name) {
+
+    const n = normalize(name);
+
+    /* Direct alias */
+    for (const key of Object.keys(aliases)) {
+
+        if (n.includes(normalize(key))) {
+            return aliases[key];
+        }
+
+    }
+
+    /* Direct ERP name */
+    for (const item of erpItems) {
+
+        if (n === normalize(item) ||
+            n.includes(normalize(item))) {
+
+            return item;
+        }
+
+    }
+
+    return null;
+};
+
+
+/* ============================================================
+   QUANTITY CONVERSION
+   ============================================================ */
+
+window.convertQuantity = function(erpName, quantity) {
+
+    let q = parseFloat(quantity);
+
+    if (isNaN(q)) {
+        return "";
+    }
+
+    if (conversions[erpName]) {
+
+        q = q * conversions[erpName];
+
+    }
+
+    /*
+       Avoid unnecessary decimal zeros.
+       Example:
+       5 × 0.045 = 0.225
+       20 × 0.045 = 0.9
+    */
+
+    return Number(q.toFixed(6));
+
+};
+
+</script>
+
+
+<script>
+
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+
+let selectedFiles = [];
+let detectedItems = [];
+let allOCRText = "";
+
+
+/* ============================================================
+   FILE SELECTION
+   ============================================================ */
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+
+    selectedFiles = Array.from(e.target.files);
+
+    renderFileList();
+
+});
+
+
+function renderFileList() {
+
+    const box = document.getElementById("fileList");
+
+    box.innerHTML = "";
+
+    selectedFiles.forEach((file, index) => {
+
+        const div = document.createElement("div");
+
+        div.className = "file";
+
+        div.innerHTML = `
+            <span>
+                📄 ${escapeHTML(file.name)}
+                <span class="small">
+                    (${formatBytes(file.size)})
+                </span>
+            </span>
+
+            <button
+                class="danger"
+                onclick="removeFile(${index})">
+                Remove
+            </button>
+        `;
+
+        box.appendChild(div);
+
+    });
+
+}
+
+
+function removeFile(index) {
+
+    selectedFiles.splice(index, 1);
+
+    renderFileList();
+
+}
+
+
+function clearAll() {
+
+    selectedFiles = [];
+    detectedItems = [];
+    allOCRText = "";
+
+    document.getElementById("fileInput").value = "";
+
+    document.getElementById("fileList").innerHTML = "";
+
+    document.getElementById("ocrText").value = "";
+
+    document.getElementById("resultsCard").style.display = "none";
+
+    document.getElementById("bookmarkCard").style.display = "none";
+
+    setStatus("");
+
+    setProgress(0);
+
+}
+
+
+/* ============================================================
+   PROCESS ALL FILES
+   ============================================================ */
+
+async function processFiles() {
+
+    if (!selectedFiles.length) {
+
+        alert("Please upload at least one invoice image or PDF.");
+
+        return;
+
+    }
+
+    detectedItems = [];
+    allOCRText = "";
+
+    setStatus("Starting OCR...");
+
+    setProgress(0);
+
+    try {
+
+        let totalPages = 0;
+
+        for (const file of selectedFiles) {
+
+            if (file.type === "application/pdf" ||
+                file.name.toLowerCase().endsWith(".pdf")) {
+
+                const pdf = await pdfjsLib.getDocument({
+                    data: await file.arrayBuffer()
+                }).promise;
+
+                totalPages += pdf.numPages;
+
+            } else {
+
+                totalPages++;
+
+            }
+
+        }
+
+        let currentPage = 0;
+
+        for (const file of selectedFiles) {
+
+            if (file.type === "application/pdf" ||
+                file.name.toLowerCase().endsWith(".pdf")) {
+
+                const pdf = await pdfjsLib.getDocument({
+                    data: await file.arrayBuffer()
+                }).promise;
+
+                for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+
+                    currentPage++;
+
+                    setStatus(
+                        `Reading ${file.name} — page ${pageNo} of ${pdf.numPages}`
+                    );
+
+                    const page = await pdf.getPage(pageNo);
+
+                    const viewport = page.getViewport({
+                        scale: 2
+                    });
+
+                    const canvas = document.createElement("canvas");
+
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    const ctx = canvas.getContext("2d");
+
+                    await page.render({
+                        canvasContext: ctx,
+                        viewport: viewport
+                    }).promise;
+
+                    const result = await runOCR(canvas);
+
+                    allOCRText +=
+                        `\n\n===== ${file.name} PAGE ${pageNo} =====\n\n`
+                        + result;
+
+                    setProgress(
+                        Math.round(currentPage / totalPages * 100)
+                    );
+
+                }
+
+            } else {
+
+                currentPage++;
+
+                setStatus(`Reading ${file.name}...`);
+
+                const result = await runOCR(file);
+
+                allOCRText +=
+                    `\n\n===== ${file.name} =====\n\n`
+                    + result;
+
+                setProgress(
+                    Math.round(currentPage / totalPages * 100)
+                );
+
+            }
+
+        }
+
+        document.getElementById("ocrText").value = allOCRText;
+
+        detectedItems = extractItems(allOCRText);
+
+        renderResults();
+
+        setStatus(
+            `Finished. ${detectedItems.length} invoice items detected.`
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+            "OCR failed: " + error.message
+        );
+
+        alert(
+            "There was a problem reading the invoice. Check the browser console for details."
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   OCR
+   ============================================================ */
+
+async function runOCR(input) {
+
+    const result = await Tesseract.recognize(
+        input,
+        "eng",
+        {
+            logger: function(message) {
+
+                if (message.status === "recognizing text") {
+
+                    const pct = Math.round(
+                        (message.progress || 0) * 100
+                    );
+
+                    setStatus(
+                        "OCR in progress: " + pct + "%"
+                    );
+
+                }
+
+            }
+        }
+    );
+
+    return result.data.text;
+
+}
+
+
+/* ============================================================
+   EXTRACT ITEM + QUANTITY
+   ============================================================ */
+
+function extractItems(text) {
+
+    const lines = text
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(Boolean);
+
+    const found = {};
+
+    /*
+       We search each OCR line against known aliases.
+
+       The last number on the line is generally treated
+       as the quantity.
+    */
+
+    for (const line of lines) {
+
+        const normalizedLine = normalize(line);
+
+        let matchedERP = null;
+        let matchedAlias = null;
+
+        /* Search aliases first */
+        for (const alias of Object.keys(aliases)) {
+
+            if (normalizedLine.includes(normalize(alias))) {
+
+                matchedERP = aliases[alias];
+                matchedAlias = alias;
+
+                break;
+
+            }
+
+        }
+
+        /* Search ERP names */
+        if (!matchedERP) {
+
+            for (const erp of erpItems) {
+
+                if (normalizedLine.includes(normalize(erp))) {
+
+                    matchedERP = erp;
+                    matchedAlias = erp;
+
+                    break;
+
+                }
+
+            }
+
+        }
+
+        if (!matchedERP) {
+            continue;
+        }
+
+
+        /*
+           Find numeric values.
+
+           Examples:
+           5
+           5.00
+           200
+           12.00
+        */
+
+        const numbers = line.match(
+            /(?:^|\s)(\d+(?:\.\d+)?)(?=\s|$)/g
+        );
+
+        if (!numbers || !numbers.length) {
+            continue;
+        }
+
+        const cleanedNumbers = numbers.map(x =>
+            parseFloat(x.trim())
+        );
+
+        /*
+           Invoice rows can contain item codes, rates,
+           amounts, etc.
+
+           For this version we use the last number.
+        */
+
+        let quantity =
+            cleanedNumbers[cleanedNumbers.length - 1];
+
+        if (isNaN(quantity)) {
+            continue;
+        }
+
+        const erpQty =
+            convertQuantity(matchedERP, quantity);
+
+
+        /*
+           If the same item appears more than once
+           across multiple invoice pages, add quantities.
+        */
+
+        if (found[matchedERP]) {
+
+            const previous =
+                parseFloat(found[matchedERP].invoiceQty);
+
+            found[matchedERP].invoiceQty =
+                previous + quantity;
+
+            found[matchedERP].erpQty =
+                convertQuantity(
+                    matchedERP,
+                    found[matchedERP].invoiceQty
+                );
+
+        } else {
+
+            found[matchedERP] = {
+
+                invoiceItem: matchedAlias,
+
+                invoiceQty: quantity,
+
+                erpItem: matchedERP,
+
+                erpQty: erpQty,
+
+                status: "matched"
+
+            };
+
+        }
+
+    }
+
+
+    return Object.values(found);
+
+}
+
+
+/* ============================================================
+   DISPLAY RESULTS
+   ============================================================ */
+
+function renderResults() {
+
+    const body =
+        document.getElementById("resultsBody");
+
+    body.innerHTML = "";
+
+    let matched = 0;
+    let warnings = 0;
+
+    detectedItems.forEach((item, index) => {
+
+        const tr = document.createElement("tr");
+
+        if (item.erpItem) {
+
+            tr.className = "matched";
+
+            matched++;
+
+        } else {
+
+            tr.className = "warning";
+
+            warnings++;
+
+        }
+
+        tr.innerHTML = `
+
+            <td>
+                ${escapeHTML(item.invoiceItem)}
+            </td>
+
+            <td>
+                <input
+                    type="number"
+                    step="any"
+                    value="${item.invoiceQty}"
+                    onchange="updateQuantity(${index}, this.value)"
+                >
+            </td>
+
+            <td>
+                <strong>
+                    ${escapeHTML(item.erpItem || "NO MATCH")}
+                </strong>
+            </td>
+
+            <td>
+                <strong id="erpQty${index}">
+                    ${item.erpQty}
+                </strong>
+            </td>
+
+            <td>
+
+                ${
+                    item.erpItem
+                    ?
+                    `<span class="badge green">MATCHED</span>`
+                    :
+                    `<span class="badge yellow">REVIEW</span>`
+                }
+
+            </td>
+
+        `;
+
+        body.appendChild(tr);
+
+    });
+
+
+    document.getElementById("totalCount").textContent =
+        detectedItems.length;
+
+    document.getElementById("matchedCount").textContent =
+        matched;
+
+    document.getElementById("warningCount").textContent =
+        warnings;
+
+    document.getElementById("resultsCard").style.display =
+        "block";
+
+}
+
+
+/* ============================================================
+   MANUAL QUANTITY EDIT
+   ============================================================ */
+
+function updateQuantity(index, value) {
+
+    const item = detectedItems[index];
+
+    item.invoiceQty =
+        parseFloat(value) || 0;
+
+    item.erpQty =
+        convertQuantity(
+            item.erpItem,
+            item.invoiceQty
+        );
+
+    document.getElementById(
+        "erpQty" + index
+    ).textContent = item.erpQty;
+
+}
+
+
+/* ============================================================
+   GENERATE BOOKMARKLET
+   ============================================================ */
+
+function generateBookmarklet() {
+
+    const data = {};
+
+    detectedItems.forEach(item => {
+
+        if (!item.erpItem) {
+            return;
+        }
+
+        data[item.erpItem] =
+            String(item.erpQty);
+
+    });
+
+
+    /*
+       This code runs INSIDE the ERP page.
+
+       It searches the existing table rows for the
+       ERP item names and fills their text input.
+    */
+
+    const payload =
+        JSON.stringify(data);
+
+
+    const code = `
+(function(){
+
+var m=${payload};
+
+var d=document;
+
+var f=d.querySelector('iframe, frame');
+
+if(f && f.contentDocument){
+    d=f.contentDocument;
+}
+
+var rows=d.querySelectorAll('tr');
+
+var matched=0;
+
+var missing=[];
+
+Object.keys(m).forEach(function(k){
+
+    var found=false;
+
+    rows.forEach(function(r){
+
+        if(found)return;
+
+        var t=(r.innerText||"")
+            .toLowerCase()
+            .replace(/\\\\s+/g," ")
+            .trim();
+
+        if(t.indexOf(k.toLowerCase())!==-1){
+
+            var i=r.querySelector(
+                'input[type="text"]'
+            );
+
+            if(i){
+
+                i.value=m[k];
+
+                i.focus();
+
+                i.dispatchEvent(
+                    new Event("input",{
+                        bubbles:true
+                    })
+                );
+
+                i.dispatchEvent(
+                    new Event("change",{
+                        bubbles:true
+                    })
+                );
+
+                i.dispatchEvent(
+                    new Event("blur",{
+                        bubbles:true
+                    })
+                );
+
+                r.style.backgroundColor="#d9ffd9";
+
+                matched++;
+
+                found=true;
+
+            }
+
+        }
+
+    });
+
+    if(!found){
+        missing.push(k);
+    }
+
+});
+
+
+alert(
+    "ERP AUTO FILL\\\\n\\\\n"+
+    "Matched: "+matched+
+    " / "+Object.keys(m).length+
+    "\\\\n\\\\n"+
+    (
+        missing.length
+        ?
+        "NOT FOUND:\\\\n"+
+        missing.join("\\\\n")
+        :
+        "All invoice items filled successfully."
+    )
+);
+
+})();
+`;
+
+
+    const bookmarklet =
+        "javascript:" +
+        code
+            .replace(/\n/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+
+
+    window.generatedBookmarklet =
+        bookmarklet;
+
+
+    document.getElementById(
+        "bookmarkletBox"
+    ).textContent = bookmarklet;
+
+
+    document.getElementById(
+        "bookmarkCard"
+    ).style.display = "block";
+
+
+    document.getElementById(
+        "bookmarkCard"
+    ).scrollIntoView({
+        behavior: "smooth"
+    });
+
+}
+
+
+/* ============================================================
+   COPY
+   ============================================================ */
+
+async function copyBookmarklet() {
+
+    if (!window.generatedBookmarklet) {
+
+        generateBookmarklet();
+
+    }
+
+    try {
+
+        await navigator.clipboard.writeText(
+            window.generatedBookmarklet
+        );
+
+        alert(
+            "Bookmarklet copied!\n\n" +
+            "Create/edit your ERP bookmark and paste it into the URL field."
+        );
+
+    } catch (error) {
+
+        alert(
+            "Copy failed. Select the bookmarklet manually and copy it."
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function setStatus(text) {
+
+    const box =
+        document.getElementById("status");
+
+    if (!text) {
+
+        box.style.display = "none";
+
+        return;
+
+    }
+
+    box.textContent = text;
+
+    box.style.display = "block";
+
+}
+
+
+function setProgress(value) {
+
+    document.getElementById(
+        "progressBar"
+    ).style.width = value + "%";
+
+}
+
+
+function formatBytes(bytes) {
+
+    if (!bytes) return "0 B";
+
+    const units = [
+        "B",
+        "KB",
+        "MB",
+        "GB"
+    ];
+
+    const i =
+        Math.floor(
+            Math.log(bytes) /
+            Math.log(1024)
+        );
+
+    return (
+        (bytes /
+        Math.pow(1024, i))
+        .toFixed(1)
+        + " "
+        + units[i]
+    );
+
+}
+
+
+function escapeHTML(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* Make functions available to buttons */
+
+window.processFiles = processFiles;
+window.removeFile = removeFile;
+window.clearAll = clearAll;
+window.generateBookmarklet = generateBookmarklet;
+window.copyBookmarklet = copyBookmarklet;
+window.updateQuantity = updateQuantity;
+
+</script>
+
+</body>
+</html>
