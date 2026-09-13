@@ -2,14 +2,24 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>Rider Fuel Adjustment</title>
 
-<!-- SheetJS -->
+
+<!-- READ ORDER LIST -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+<!-- PRESERVE AND UPDATE EXCEL TEMPLATE -->
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -17,15 +27,15 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f4f6f8;
+    background: #f3f4f6;
     color: #1f2937;
 }
 
 header {
     background: #111827;
     color: white;
-    padding: 22px 15px;
     text-align: center;
+    padding: 22px 15px;
 }
 
 header h1 {
@@ -36,21 +46,19 @@ header h1 {
 header p {
     margin: 8px 0 0;
     color: #d1d5db;
-    font-size: 14px;
 }
 
 .container {
-    max-width: 1250px;
+    max-width: 900px;
     margin: auto;
-    padding: 20px;
+    padding: 25px 15px;
 }
 
 .card {
     background: white;
     border-radius: 12px;
-    padding: 22px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    padding: 25px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.08);
 }
 
 .card h2 {
@@ -59,14 +67,17 @@ header p {
 
 .upload-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(280px, 1fr)
+    );
     gap: 20px;
 }
 
 .upload-box {
     border: 2px dashed #cbd5e1;
-    padding: 20px;
     border-radius: 10px;
+    padding: 20px;
     background: #f8fafc;
 }
 
@@ -86,30 +97,33 @@ header p {
 input[type="file"],
 input[type="number"] {
     width: 100%;
-    padding: 10px;
+    padding: 11px;
     border: 1px solid #cbd5e1;
     border-radius: 7px;
 }
 
-.settings {
-    display: flex;
-    gap: 15px;
-    align-items: end;
-    flex-wrap: wrap;
-    margin-top: 20px;
+.rate-box {
+    width: 220px;
+    margin-top: 25px;
 }
 
-.rate-box {
-    width: 200px;
+.rate-box label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.actions {
+    margin-top: 25px;
 }
 
 button {
     border: none;
-    padding: 12px 20px;
+    padding: 13px 22px;
     border-radius: 7px;
     cursor: pointer;
-    font-weight: bold;
     font-size: 15px;
+    font-weight: bold;
 }
 
 .primary-btn {
@@ -117,24 +131,14 @@ button {
     color: white;
 }
 
-.success-btn {
-    background: #16a34a;
-    color: white;
-}
-
-.secondary-btn {
-    background: #64748b;
-    color: white;
-}
-
-button:hover {
-    opacity: .9;
+.primary-btn:hover {
+    background: #1d4ed8;
 }
 
 .message {
     display: none;
-    margin-top: 15px;
-    padding: 12px;
+    margin-top: 20px;
+    padding: 13px;
     border-radius: 7px;
 }
 
@@ -150,347 +154,227 @@ button:hover {
     color: #991b1b;
 }
 
-.table-wrapper {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-th,
-td {
-    border: 1px solid #d1d5db;
-    padding: 10px;
-    text-align: center;
-}
-
-th {
-    background: #111827;
-    color: white;
-    white-space: nowrap;
-}
-
-td {
-    white-space: nowrap;
-}
-
-td input {
-    width: 110px;
-    padding: 7px;
-    border: 1px solid #cbd5e1;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.total-row {
-    background: #e5e7eb;
-    font-weight: bold;
-}
-
-.rider-select {
-    margin-top: 20px;
-}
-
-.rider-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-    max-height: 350px;
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-}
-
-.rider-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    background: #f8fafc;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.rider-item input {
-    width: auto;
-}
-
-.actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    flex-wrap: wrap;
+.message.loading {
+    display: block;
+    background: #dbeafe;
+    color: #1d4ed8;
 }
 
 .info {
-    font-size: 14px;
-    color: #64748b;
-    line-height: 1.5;
+    margin-top: 25px;
+    padding: 15px;
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    line-height: 1.7;
 }
 
-@media(max-width:600px) {
+@media (max-width: 600px) {
 
     .container {
-        padding: 12px;
+        padding: 15px;
     }
 
     .card {
-        padding: 15px;
+        padding: 18px;
     }
 
     header h1 {
         font-size: 21px;
     }
+
 }
+
 </style>
 </head>
 
+
 <body>
 
+
 <header>
+
     <h1>Rider Fuel Adjustment</h1>
-    <p>Count rider orders and calculate fuel amount automatically</p>
+
+    <p>
+        Update your original Excel template automatically
+    </p>
+
 </header>
+
 
 
 <div class="container">
 
 
-<!-- UPLOAD -->
-
 <div class="card">
 
-    <h2>Upload Files</h2>
 
-    <div class="upload-grid">
-
-
-        <!-- ORDER FILE -->
-
-        <div class="upload-box">
-
-            <label>
-                📋 Order List
-                <span style="color:red">*</span>
-            </label>
-
-            <input
-                type="file"
-                id="orderFile"
-                accept=".xlsx,.xls,.csv"
-            >
-
-            <small>
-                Required. Upload the daily Order List.
-                The tool will detect the Rider or Assigned To column.
-            </small>
-
-        </div>
+<h2>Upload Files</h2>
 
 
-        <!-- OPTIONAL RIDER FILE -->
-
-        <div class="upload-box">
-
-            <label>
-                👤 Rider Template
-                <span style="color:#64748b">(Optional)</span>
-            </label>
-
-            <input
-                type="file"
-                id="riderFile"
-                accept=".xlsx,.xls,.csv"
-            >
-
-            <small>
-                Optional. Upload any rider template containing
-                ID and Name columns. No example riders are
-                permanently stored in this tool.
-            </small>
-
-        </div>
+<div class="upload-grid">
 
 
-    </div>
+<!-- ORDER LIST -->
 
+<div class="upload-box">
 
-    <div class="settings">
+<label>
+📋 Order List
+<span style="color:red">*</span>
+</label>
 
-        <div class="rate-box">
-
-            <label>
-                <strong>Fuel Per Order (Rs.)</strong>
-            </label>
-
-            <br><br>
-
-            <input
-                type="number"
-                id="fuelRate"
-                value="61"
-                min="0"
-            >
-
-        </div>
-
-
-        <button
-            class="primary-btn"
-            onclick="processFiles()"
-        >
-            Process Orders
-        </button>
-
-    </div>
-
-
-    <div id="message" class="message"></div>
-
-</div>
-
-
-<!-- RIDER SELECTION -->
-
-<div
-    class="card"
-    id="selectionCard"
-    style="display:none"
+<input
+    type="file"
+    id="orderFile"
+    accept=".xlsx,.xls,.csv"
 >
 
-    <h2>Select Riders</h2>
+<small>
 
-    <p class="info">
-        Select the riders you want to include in the final output.
-    </p>
+Upload your Order List.
 
+The tool will search for Rider,
+Assigned To, Name or similar columns.
 
-    <div class="actions">
-
-        <button
-            class="secondary-btn"
-            onclick="selectAllRiders()"
-        >
-            Select All
-        </button>
-
-
-        <button
-            class="secondary-btn"
-            onclick="clearRiderSelection()"
-        >
-            Clear All
-        </button>
-
-    </div>
-
-
-    <div
-        class="rider-list"
-        id="riderSelection"
-    ></div>
-
-
-    <div class="actions">
-
-        <button
-            class="primary-btn"
-            onclick="calculateAdjustment()"
-        >
-            Calculate Adjustment
-        </button>
-
-    </div>
+</small>
 
 </div>
 
 
-<!-- RESULTS -->
 
-<div
-    class="card"
-    id="resultCard"
-    style="display:none"
+<!-- TEMPLATE -->
+
+<div class="upload-box">
+
+<label>
+📊 Fuel Amount Template
+<span style="color:red">*</span>
+</label>
+
+<input
+    type="file"
+    id="templateFile"
+    accept=".xlsx"
 >
 
-    <h2>Fuel Adjustment Result</h2>
+<small>
 
+Upload your original formatted
+Fuel Amount Excel template.
 
-    <div class="table-wrapper">
+Your template will be used as
+the output base.
 
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>No. of Order</th>
-                    <th>Order Amount</th>
-                    <th>Other Amount</th>
-                    <th>Grave yard order amount</th>
-                    <th>Total Amount</th>
-                </tr>
-
-            </thead>
-
-
-            <tbody id="resultBody"></tbody>
-
-
-            <tfoot id="resultFooter"></tfoot>
-
-        </table>
-
-    </div>
-
-
-    <div class="actions">
-
-        <button
-            class="success-btn"
-            onclick="downloadExcel()"
-        >
-            ⬇ Download Excel
-        </button>
-
-    </div>
+</small>
 
 </div>
 
 
 </div>
+
+
+
+<div class="rate-box">
+
+<label>
+Fuel Amount Per Order (Rs.)
+</label>
+
+<input
+    type="number"
+    id="fuelRate"
+    value="61"
+    min="0"
+>
+
+</div>
+
+
+
+<div class="actions">
+
+<button
+    class="primary-btn"
+    onclick="processExcel()"
+>
+Generate Fuel Adjustment
+</button>
+
+</div>
+
+
+
+<div
+    id="message"
+    class="message"
+></div>
+
+
+
+<div class="info">
+
+<strong>Important:</strong>
+
+<br>
+
+✓ Your uploaded Fuel Amount Template is used as the original output.
+
+<br>
+
+✓ No rider names or IDs are hardcoded.
+
+<br>
+
+✓ ID and Name are separated automatically.
+
+<br>
+
+✓ Existing Other Amount and Grave Yard Amount are preserved.
+
+<br>
+
+✓ Only rider calculation values and total values are updated.
+
+</div>
+
+
+</div>
+
+</div>
+
 
 
 <script>
 
 
-/* =====================================
-   GLOBAL VARIABLES
-===================================== */
+/* =========================================
+   SHOW MESSAGE
+========================================= */
 
-let orderData = [];
+function showMessage(text, type) {
 
-let riders = [];
+    const box =
+        document.getElementById("message");
 
-let finalData = [];
+    box.textContent = text;
+
+    box.className =
+        "message " + type;
+
+}
 
 
-/* =====================================
+
+/* =========================================
    NORMALIZE TEXT
-===================================== */
+========================================= */
 
 function normalizeText(value) {
 
     if (
-        value === undefined ||
-        value === null
+        value === null ||
+        value === undefined
     ) {
         return "";
     }
@@ -506,9 +390,50 @@ function normalizeText(value) {
 }
 
 
-/* =====================================
-   NORMALIZE COLUMN
-===================================== */
+
+/* =========================================
+   TITLE CASE NAME
+========================================= */
+
+function titleCase(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    return String(value)
+
+        .trim()
+
+        .replace(/\s+/g, " ")
+
+        .toLowerCase()
+
+        .split(" ")
+
+        .map(word => {
+
+            if (!word) {
+                return "";
+            }
+
+            return (
+                word.charAt(0).toUpperCase()
+                +
+                word.slice(1)
+            );
+
+        })
+
+        .join(" ");
+
+}
+
+
+
+/* =========================================
+   NORMALIZE COLUMN NAME
+========================================= */
 
 function normalizeColumn(value) {
 
@@ -521,123 +446,39 @@ function normalizeColumn(value) {
 }
 
 
-/* =====================================
-   SHOW MESSAGE
-===================================== */
 
-function showMessage(text, type) {
-
-    const message =
-        document.getElementById("message");
-
-    message.textContent = text;
-
-    message.className =
-        "message " + type;
-
-}
-
-
-/* =====================================
-   READ EXCEL
-===================================== */
-
-function readExcel(file) {
-
-    return new Promise(
-        (resolve, reject) => {
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload = event => {
-
-                try {
-
-                    const workbook =
-                        XLSX.read(
-                            event.target.result,
-                            {
-                                type: "array"
-                            }
-                        );
-
-
-                    const sheetName =
-                        workbook.SheetNames[0];
-
-
-                    const sheet =
-                        workbook.Sheets[sheetName];
-
-
-                    const data =
-                        XLSX.utils.sheet_to_json(
-                            sheet,
-                            {
-                                defval: ""
-                            }
-                        );
-
-
-                    resolve(data);
-
-                }
-
-                catch (error) {
-
-                    reject(error);
-
-                }
-
-            };
-
-
-            reader.onerror = reject;
-
-
-            reader.readAsArrayBuffer(file);
-
-        }
-    );
-
-}
-
-
-/* =====================================
+/* =========================================
    FIND COLUMN
-===================================== */
+========================================= */
 
-function findColumn(
-    row,
-    possibleColumns
-) {
+function findColumn(row, possibleNames) {
 
     const keys =
         Object.keys(row);
 
 
     for (
-        const name
-        of possibleColumns
+        const possibleName
+        of possibleNames
     ) {
 
         const target =
-            normalizeColumn(name);
+            normalizeColumn(possibleName);
 
 
         const found =
-            keys.find(key =>
-                normalizeColumn(key)
-                === target
-            );
+            keys.find(key => {
+
+                return (
+                    normalizeColumn(key)
+                    === target
+                );
+
+            });
 
 
         if (found) {
-
             return found;
-
         }
 
     }
@@ -648,90 +489,662 @@ function findColumn(
 }
 
 
-/* =====================================
-   GET ORDER RIDER COLUMN
-===================================== */
 
-function getOrderRider(row) {
+/* =========================================
+   READ ORDER FILE
+========================================= */
 
-    const column =
-        findColumn(
-            row,
-            [
-                "Rider",
-                "Rider Name",
-                "Assigned To",
-                "AssignedTo"
-            ]
-        );
+function readOrderFile(file) {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            const reader =
+                new FileReader();
 
 
-    if (!column) {
+            reader.onload =
+                function(event) {
 
-        return "";
+                    try {
+
+                        const workbook =
+                            XLSX.read(
+                                event.target.result,
+                                {
+                                    type: "array"
+                                }
+                            );
+
+
+                        let allRows = [];
+
+
+                        workbook.SheetNames
+                            .forEach(
+                                sheetName => {
+
+                                    const sheet =
+                                        workbook.Sheets[
+                                            sheetName
+                                        ];
+
+
+                                    const rows =
+                                        XLSX.utils.sheet_to_json(
+                                            sheet,
+                                            {
+                                                defval: ""
+                                            }
+                                        );
+
+
+                                    allRows =
+                                        allRows.concat(rows);
+
+                                }
+                            );
+
+
+                        resolve(allRows);
+
+                    }
+
+                    catch (error) {
+
+                        reject(error);
+
+                    }
+
+                };
+
+
+            reader.onerror =
+                reject;
+
+
+            reader.readAsArrayBuffer(file);
+
+        }
+    );
+
+}
+
+
+
+/* =========================================
+   EXTRACT RIDER ID + NAME
+========================================= */
+
+function extractRiderData(
+    row,
+    riderColumn,
+    idColumn
+) {
+
+    let rawRider =
+        riderColumn
+        ? String(
+            row[riderColumn] || ""
+        )
+        : "";
+
+
+    let id =
+        idColumn
+        ? String(
+            row[idColumn] || ""
+        ).trim()
+        : "";
+
+
+    rawRider =
+        rawRider
+        .trim()
+        .replace(/\s+/g, " ");
+
+
+    /*
+    -----------------------------------------
+    IF ID IS ALREADY IN SEPARATE COLUMN
+    -----------------------------------------
+    */
+
+    if (id) {
+
+        id =
+            id.replace(
+                /[^0-9]/g,
+                ""
+            );
 
     }
 
 
-    return row[column];
+    /*
+    -----------------------------------------
+    FIND NUMERIC ID INSIDE RIDER TEXT
+
+    Examples:
+
+    Raja Danish 17810
+    Raja Danish - 17810
+    Raja Danish (17810)
+    -----------------------------------------
+    */
+
+    if (!id) {
+
+        const idMatch =
+            rawRider.match(
+                /(?:^|\s|\(|-|_)(\d{3,})(?:\)|\s|$)/
+            );
+
+
+        if (idMatch) {
+
+            id =
+                idMatch[1];
+
+        }
+
+    }
+
+
+    /*
+    -----------------------------------------
+    REMOVE ID FROM NAME
+    -----------------------------------------
+    */
+
+    let name =
+        rawRider;
+
+
+    if (id) {
+
+        const escapedID =
+            id.replace(
+                /[.*+?^${}()|[\]\\]/g,
+                "\\$&"
+            );
+
+
+        name =
+            name.replace(
+                new RegExp(
+                    "\\s*\\(?\\b"
+                    +
+                    escapedID
+                    +
+                    "\\b\\)?\\s*",
+                    "g"
+                ),
+                " "
+            );
+
+    }
+
+
+    /*
+    REMOVE EXTRA SYMBOLS
+    */
+
+    name =
+        name
+
+        .replace(
+            /[-_()]+/g,
+            " "
+        )
+
+        .replace(
+            /\s+/g,
+            " "
+        )
+
+        .trim();
+
+
+    return {
+
+        id: id,
+
+        name: titleCase(name),
+
+        rawName:
+            normalizeText(name)
+
+    };
 
 }
 
 
-/* =====================================
-   GET ID
-===================================== */
 
-function getRiderID(row) {
+/* =========================================
+   FIND ORDER LIST COLUMNS
+========================================= */
 
-    const column =
+function detectOrderColumns(orderRows) {
+
+    if (
+        !orderRows ||
+        orderRows.length === 0
+    ) {
+        return null;
+    }
+
+
+    const sampleRow =
+        orderRows[0];
+
+
+    const riderColumn =
         findColumn(
-            row,
+            sampleRow,
             [
-                "ID",
-                "Rider ID",
-                "RiderID"
-            ]
-        );
 
-
-    return column
-        ? row[column]
-        : "";
-
-}
-
-
-/* =====================================
-   GET NAME
-===================================== */
-
-function getRiderName(row) {
-
-    const column =
-        findColumn(
-            row,
-            [
-                "Name",
+                "Rider",
                 "Rider Name",
-                "RiderName",
-                "Rider"
+                "Assigned To",
+                "AssignedTo",
+                "Delivery Rider",
+                "Name"
+
             ]
         );
 
 
-    return column
-        ? row[column]
-        : "";
+    const idColumn =
+        findColumn(
+            sampleRow,
+            [
+
+                "Rider ID",
+                "RiderID",
+                "ID",
+                "Employee ID",
+                "EmployeeID"
+
+            ]
+        );
+
+
+    return {
+
+        riderColumn:
+            riderColumn,
+
+        idColumn:
+            idColumn
+
+    };
 
 }
 
 
-/* =====================================
-   PROCESS FILES
-===================================== */
 
-async function processFiles() {
+/* =========================================
+   GET CELL TEXT
+========================================= */
+
+function getCellText(cell) {
+
+    if (!cell) {
+        return "";
+    }
+
+
+    const value =
+        cell.value;
+
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+
+    if (
+        typeof value === "object"
+    ) {
+
+        if (value.richText) {
+
+            return value.richText
+
+                .map(item =>
+                    item.text
+                )
+
+                .join("");
+
+        }
+
+
+        if (value.text) {
+            return value.text;
+        }
+
+
+        if (value.result !== undefined) {
+            return String(value.result);
+        }
+
+    }
+
+
+    return String(value);
+
+}
+
+
+
+/* =========================================
+   FIND TEMPLATE SHEET
+========================================= */
+
+function findTemplateSheet(workbook) {
+
+    for (
+        const worksheet
+        of workbook.worksheets
+    ) {
+
+        let foundID = false;
+
+        let foundName = false;
+
+        let foundOrder = false;
+
+
+        worksheet.eachRow(
+            row => {
+
+                row.eachCell(
+                    cell => {
+
+                        const text =
+                            normalizeColumn(
+                                getCellText(cell)
+                            );
+
+
+                        if (
+                            text === "id"
+                        ) {
+                            foundID = true;
+                        }
+
+
+                        if (
+                            text === "name"
+                        ) {
+                            foundName = true;
+                        }
+
+
+                        if (
+                            text === "nooforder"
+                            ||
+                            text === "numberoforder"
+                        ) {
+                            foundOrder = true;
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        if (
+            foundID &&
+            foundName &&
+            foundOrder
+        ) {
+
+            return worksheet;
+
+        }
+
+    }
+
+
+    /*
+    IF NOT FOUND:
+    USE FIRST SHEET
+    */
+
+    return workbook.worksheets[0];
+
+}
+
+
+
+/* =========================================
+   FIND HEADER ROW + COLUMNS
+========================================= */
+
+function findTemplateColumns(worksheet) {
+
+    let result = {
+
+        headerRow: null,
+
+        idCol: null,
+
+        nameCol: null,
+
+        orderCol: null,
+
+        orderAmountCol: null,
+
+        otherAmountCol: null,
+
+        graveYardCol: null,
+
+        totalAmountCol: null
+
+    };
+
+
+    worksheet.eachRow(
+        row => {
+
+            row.eachCell(
+                cell => {
+
+                    const text =
+                        normalizeColumn(
+                            getCellText(cell)
+                        );
+
+
+                    if (
+                        text === "id"
+                    ) {
+
+                        result.idCol =
+                            cell.col;
+
+                        result.headerRow =
+                            row.number;
+
+                    }
+
+
+                    if (
+                        text === "name"
+                    ) {
+
+                        result.nameCol =
+                            cell.col;
+
+                    }
+
+
+                    if (
+                        text === "nooforder"
+                        ||
+                        text === "numberoforder"
+                    ) {
+
+                        result.orderCol =
+                            cell.col;
+
+                    }
+
+
+                    if (
+                        text === "orderamount"
+                    ) {
+
+                        result.orderAmountCol =
+                            cell.col;
+
+                    }
+
+
+                    if (
+                        text === "otheramount"
+                    ) {
+
+                        result.otherAmountCol =
+                            cell.col;
+
+                    }
+
+
+                    if (
+                        text ===
+                        "graveyardorderamount"
+                    ) {
+
+                        result.graveYardCol =
+                            cell.col;
+
+                    }
+
+
+                    if (
+                        text ===
+                        "totalamount"
+                    ) {
+
+                        result.totalAmountCol =
+                            cell.col;
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    return result;
+
+}
+
+
+
+/* =========================================
+   CHECK TOTAL ROW
+========================================= */
+
+function isTotalRow(row) {
+
+    let rowText = "";
+
+
+    row.eachCell(
+        cell => {
+
+            rowText +=
+                " "
+                +
+                normalizeText(
+                    getCellText(cell)
+                );
+
+        }
+    );
+
+
+    return (
+
+        rowText.includes(
+            "total order"
+        )
+
+        ||
+
+        rowText.includes(
+            "totalorder"
+        )
+
+    );
+
+}
+
+
+
+/* =========================================
+   GET NUMERIC VALUE
+========================================= */
+
+function getNumber(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return 0;
+    }
+
+
+    if (
+        typeof value === "number"
+    ) {
+        return value;
+    }
+
+
+    const number =
+        Number(
+            String(value)
+
+                .replace(
+                    /,/g,
+                    ""
+                )
+
+                .replace(
+                    /[^0-9.-]/g,
+                    ""
+                )
+        );
+
+
+    return isNaN(number)
+        ? 0
+        : number;
+
+}
+
+
+
+/* =========================================
+   MAIN PROCESS
+========================================= */
+
+async function processExcel() {
 
     const orderFile =
         document
@@ -739,16 +1152,56 @@ async function processFiles() {
         .files[0];
 
 
-    const riderFile =
+    const templateFile =
         document
-        .getElementById("riderFile")
+        .getElementById("templateFile")
         .files[0];
 
+
+    const fuelRate =
+        getNumber(
+            document
+            .getElementById("fuelRate")
+            .value
+        );
+
+
+    /*
+    ------------------------------
+    VALIDATION
+    ------------------------------
+    */
 
     if (!orderFile) {
 
         showMessage(
-            "Please upload the Order List.",
+            "Please upload the Order List file.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if (!templateFile) {
+
+        showMessage(
+            "Please upload the Fuel Amount Template.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if (
+        fuelRate <= 0
+    ) {
+
+        showMessage(
+            "Please enter a valid fuel amount.",
             "error"
         );
 
@@ -760,19 +1213,25 @@ async function processFiles() {
     try {
 
         showMessage(
-            "Reading files...",
-            "success"
+            "Reading Order List...",
+            "loading"
         );
 
 
-        /* READ ORDER FILE */
+        /*
+        ------------------------------
+        READ ORDER LIST
+        ------------------------------
+        */
 
-        orderData =
-            await readExcel(orderFile);
+        const orderRows =
+            await readOrderFile(
+                orderFile
+            );
 
 
         if (
-            orderData.length === 0
+            orderRows.length === 0
         ) {
 
             throw new Error(
@@ -782,147 +1241,683 @@ async function processFiles() {
         }
 
 
-        riders = [];
-
-
-        /* =================================
-           OPTIONAL RIDER TEMPLATE
-        ================================= */
-
-        if (riderFile) {
-
-            const riderFileData =
-                await readExcel(riderFile);
-
-
-            riderFileData.forEach(
-                row => {
-
-                    const id =
-                        getRiderID(row);
-
-
-                    const name =
-                        getRiderName(row);
-
-
-                    if (name) {
-
-                        riders.push({
-
-                            id: id,
-
-                            name: name,
-
-                            key:
-                                normalizeText(name)
-
-                        });
-
-                    }
-
-                }
+        const columns =
+            detectOrderColumns(
+                orderRows
             );
-
-        }
-
-
-        /* =================================
-           NO TEMPLATE:
-           DETECT RIDERS FROM ORDER LIST
-        ================================= */
-
-        else {
-
-            const uniqueRiders =
-                new Map();
-
-
-            orderData.forEach(
-                row => {
-
-                    const name =
-                        getOrderRider(row);
-
-
-                    const key =
-                        normalizeText(name);
-
-
-                    if (
-                        name &&
-                        key
-                    ) {
-
-                        if (
-                            !uniqueRiders.has(key)
-                        ) {
-
-                            uniqueRiders.set(
-                                key,
-                                name
-                            );
-
-                        }
-
-                    }
-
-                }
-            );
-
-
-            uniqueRiders.forEach(
-                (name, key) => {
-
-                    riders.push({
-
-                        id: "",
-
-                        name: name,
-
-                        key: key
-
-                    });
-
-                }
-            );
-
-        }
 
 
         if (
-            riders.length === 0
+            !columns.riderColumn
         ) {
 
             throw new Error(
-                "No riders were found."
+
+                "Could not find Rider or Assigned To column in the Order List."
+
             );
 
         }
 
 
-        renderRiderSelection();
+        /*
+        ------------------------------
+        CREATE ORDER DATA
+        ------------------------------
+        */
+
+        showMessage(
+            "Analyzing rider orders...",
+            "loading"
+        );
 
 
-        document
-            .getElementById(
-                "selectionCard"
-            )
-            .style.display =
-            "block";
+        const ordersByID = {};
+
+        const ordersByName = {};
 
 
-        document
-            .getElementById(
-                "resultCard"
-            )
-            .style.display =
-            "none";
+        orderRows.forEach(
+            row => {
+
+                const rider =
+                    extractRiderData(
+
+                        row,
+
+                        columns.riderColumn,
+
+                        columns.idColumn
+
+                    );
+
+
+                /*
+                SKIP EMPTY
+                */
+
+                if (
+                    !rider.name &&
+                    !rider.id
+                ) {
+                    return;
+                }
+
+
+                /*
+                COUNT BY ID
+                */
+
+                if (rider.id) {
+
+                    ordersByID[
+                        rider.id
+                    ] =
+                    (
+                        ordersByID[
+                            rider.id
+                        ]
+                        || 0
+                    )
+                    + 1;
+
+                }
+
+
+                /*
+                COUNT BY NAME
+                */
+
+                if (rider.rawName) {
+
+                    ordersByName[
+                        rider.rawName
+                    ] =
+                    (
+                        ordersByName[
+                            rider.rawName
+                        ]
+                        || 0
+                    )
+                    + 1;
+
+                }
+
+            }
+        );
+
+
+        /*
+        ------------------------------
+        READ TEMPLATE
+        ------------------------------
+        */
+
+        showMessage(
+            "Opening original template...",
+            "loading"
+        );
+
+
+        const templateBuffer =
+            await templateFile.arrayBuffer();
+
+
+        const workbook =
+            new ExcelJS.Workbook();
+
+
+        await workbook.xlsx.load(
+            templateBuffer
+        );
+
+
+        const worksheet =
+            findTemplateSheet(
+                workbook
+            );
+
+
+        const template =
+            findTemplateColumns(
+                worksheet
+            );
+
+
+        /*
+        ------------------------------
+        CHECK REQUIRED COLUMNS
+        ------------------------------
+        */
+
+        if (
+            !template.headerRow ||
+            !template.nameCol ||
+            !template.orderCol ||
+            !template.orderAmountCol ||
+            !template.totalAmountCol
+        ) {
+
+            throw new Error(
+
+                "Could not detect the required columns in your template."
+
+            );
+
+        }
+
+
+        /*
+        ------------------------------
+        UPDATE TEMPLATE
+        ------------------------------
+        */
+
+        showMessage(
+            "Updating rider calculations...",
+            "loading"
+        );
+
+
+        let totalOrders = 0;
+
+        let totalOrderAmount = 0;
+
+        let totalOtherAmount = 0;
+
+        let totalGraveYard = 0;
+
+        let grandTotal = 0;
+
+
+        const startRow =
+            template.headerRow + 1;
+
+
+        for (
+            let rowNumber = startRow;
+            rowNumber <= worksheet.rowCount;
+            rowNumber++
+        ) {
+
+            const row =
+                worksheet.getRow(
+                    rowNumber
+                );
+
+
+            /*
+            --------------------------
+            TOTAL ROW
+            --------------------------
+            */
+
+            if (
+                isTotalRow(row)
+            ) {
+
+                /*
+                UPDATE TOTALS
+                */
+
+                if (
+                    template.orderCol
+                ) {
+
+                    row.getCell(
+                        template.orderCol
+                    ).value =
+                        totalOrders;
+
+                }
+
+
+                if (
+                    template.orderAmountCol
+                ) {
+
+                    row.getCell(
+                        template.orderAmountCol
+                    ).value =
+                        totalOrderAmount;
+
+                }
+
+
+                if (
+                    template.otherAmountCol
+                ) {
+
+                    row.getCell(
+                        template.otherAmountCol
+                    ).value =
+                        totalOtherAmount;
+
+                }
+
+
+                if (
+                    template.graveYardCol
+                ) {
+
+                    row.getCell(
+                        template.graveYardCol
+                    ).value =
+                        totalGraveYard;
+
+                }
+
+
+                if (
+                    template.totalAmountCol
+                ) {
+
+                    row.getCell(
+                        template.totalAmountCol
+                    ).value =
+                        grandTotal;
+
+                }
+
+
+                break;
+
+            }
+
+
+            /*
+            --------------------------
+            READ TEMPLATE RIDER
+            --------------------------
+            */
+
+            const idCell =
+                template.idCol
+                ? row.getCell(
+                    template.idCol
+                )
+                : null;
+
+
+            const nameCell =
+                row.getCell(
+                    template.nameCol
+                );
+
+
+            let templateID =
+                idCell
+                ? String(
+                    idCell.value || ""
+                )
+
+                .replace(
+                    /[^0-9]/g,
+                    ""
+                )
+
+                .trim()
+
+                : "";
+
+
+            let templateName =
+                getCellText(
+                    nameCell
+                );
+
+
+            /*
+            SKIP EMPTY ROW
+            */
+
+            if (
+                !templateID &&
+                !templateName
+            ) {
+                continue;
+            }
+
+
+            /*
+            --------------------------
+            CLEAN NAME
+            --------------------------
+            */
+
+            const cleanName =
+                titleCase(
+                    templateName
+                );
+
+
+            const normalizedName =
+                normalizeText(
+                    cleanName
+                );
+
+
+            /*
+            --------------------------
+            FIND ORDER COUNT
+
+            PRIORITY:
+            1. ID
+            2. Name
+            --------------------------
+            */
+
+            let orderCount = 0;
+
+
+            if (
+                templateID &&
+                ordersByID[
+                    templateID
+                ] !== undefined
+            ) {
+
+                orderCount =
+                    ordersByID[
+                        templateID
+                    ];
+
+            }
+
+            else if (
+                normalizedName &&
+                ordersByName[
+                    normalizedName
+                ] !== undefined
+            ) {
+
+                orderCount =
+                    ordersByName[
+                        normalizedName
+                    ];
+
+            }
+
+
+            /*
+            --------------------------
+            UPDATE NAME
+            --------------------------
+            */
+
+            nameCell.value =
+                cleanName;
+
+
+            /*
+            --------------------------
+            IF TEMPLATE ID EMPTY
+
+            TRY TO FIND ID FROM
+            ORDER LIST RIDERS
+            --------------------------
+            */
+
+            if (
+                !templateID &&
+                normalizedName &&
+                template.idCol
+            ) {
+
+                let foundID = "";
+
+
+                orderRows.some(
+                    orderRow => {
+
+                        const rider =
+                            extractRiderData(
+
+                                orderRow,
+
+                                columns.riderColumn,
+
+                                columns.idColumn
+
+                            );
+
+
+                        if (
+
+                            rider.id
+
+                            &&
+
+                            rider.rawName
+                            === normalizedName
+
+                        ) {
+
+                            foundID =
+                                rider.id;
+
+                            return true;
+
+                        }
+
+
+                        return false;
+
+                    }
+                );
+
+
+                if (foundID) {
+
+                    templateID =
+                        foundID;
+
+
+                    row.getCell(
+                        template.idCol
+                    ).value =
+                        templateID;
+
+                }
+
+            }
+
+
+            /*
+            --------------------------
+            CALCULATE AMOUNTS
+            --------------------------
+            */
+
+            const orderAmount =
+                orderCount
+                * fuelRate;
+
+
+            const otherAmount =
+                template.otherAmountCol
+
+                ? getNumber(
+
+                    row.getCell(
+                        template.otherAmountCol
+                    ).value
+
+                )
+
+                : 0;
+
+
+            const graveYardAmount =
+                template.graveYardCol
+
+                ? getNumber(
+
+                    row.getCell(
+                        template.graveYardCol
+                    ).value
+
+                )
+
+                : 0;
+
+
+            const totalAmount =
+
+                orderAmount
+
+                + otherAmount
+
+                + graveYardAmount;
+
+
+            /*
+            --------------------------
+            WRITE ONLY VALUES
+            FORMATTING REMAINS
+            --------------------------
+            */
+
+            row.getCell(
+                template.orderCol
+            ).value =
+                orderCount;
+
+
+            row.getCell(
+                template.orderAmountCol
+            ).value =
+                orderAmount;
+
+
+            if (
+                template.totalAmountCol
+            ) {
+
+                row.getCell(
+                    template.totalAmountCol
+                ).value =
+                    totalAmount;
+
+            }
+
+
+            /*
+            --------------------------
+            ADD TOTALS
+            --------------------------
+            */
+
+            totalOrders +=
+                orderCount;
+
+
+            totalOrderAmount +=
+                orderAmount;
+
+
+            totalOtherAmount +=
+                otherAmount;
+
+
+            totalGraveYard +=
+                graveYardAmount;
+
+
+            grandTotal +=
+                totalAmount;
+
+        }
+
+
+        /*
+        ------------------------------
+        CREATE OUTPUT
+        ------------------------------
+        */
+
+        showMessage(
+            "Creating final Excel file...",
+            "loading"
+        );
+
+
+        const outputBuffer =
+            await workbook.xlsx.writeBuffer();
+
+
+        const blob =
+            new Blob(
+
+                [outputBuffer],
+
+                {
+
+                    type:
+
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+                }
+
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                "a"
+            );
+
+
+        const date =
+            new Date()
+
+            .toISOString()
+
+            .split("T")[0];
+
+
+        link.href =
+            url;
+
+
+        link.download =
+            "Rider_Fuel_Adjustment_"
+            +
+            date
+            +
+            ".xlsx";
+
+
+        document.body.appendChild(
+            link
+        );
+
+
+        link.click();
+
+
+        document.body.removeChild(
+            link
+        );
+
+
+        URL.revokeObjectURL(
+            url
+        );
 
 
         showMessage(
-            `${riders.length} riders found successfully.`,
+
+            "Success! Your original template was updated and downloaded.",
+
             "success"
+
         );
 
     }
@@ -934,741 +1929,22 @@ async function processFiles() {
 
 
         showMessage(
+
+            "Error: "
+            +
             error.message,
+
             "error"
+
         );
 
     }
-
-}
-
-
-/* =====================================
-   RENDER RIDER SELECTION
-===================================== */
-
-function renderRiderSelection() {
-
-    const container =
-        document.getElementById(
-            "riderSelection"
-        );
-
-
-    container.innerHTML = "";
-
-
-    riders.forEach(
-        (rider, index) => {
-
-            const label =
-                document.createElement(
-                    "label"
-                );
-
-
-            label.className =
-                "rider-item";
-
-
-            label.innerHTML = `
-
-                <input
-                    type="checkbox"
-                    class="rider-checkbox"
-                    data-index="${index}"
-                    checked
-                >
-
-                <span>
-                    ${
-                        rider.id
-                        ? rider.id + " - "
-                        : ""
-                    }
-
-                    ${rider.name}
-                </span>
-
-            `;
-
-
-            container.appendChild(
-                label
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================
-   SELECT ALL
-===================================== */
-
-function selectAllRiders() {
-
-    document
-        .querySelectorAll(
-            ".rider-checkbox"
-        )
-        .forEach(
-            checkbox => {
-
-                checkbox.checked = true;
-
-            }
-        );
-
-}
-
-
-/* =====================================
-   CLEAR ALL
-===================================== */
-
-function clearRiderSelection() {
-
-    document
-        .querySelectorAll(
-            ".rider-checkbox"
-        )
-        .forEach(
-            checkbox => {
-
-                checkbox.checked = false;
-
-            }
-        );
-
-}
-
-
-/* =====================================
-   CALCULATE ADJUSTMENT
-===================================== */
-
-function calculateAdjustment() {
-
-    const fuelRate =
-        Number(
-            document
-            .getElementById(
-                "fuelRate"
-            )
-            .value
-        ) || 61;
-
-
-    const selectedIndexes =
-        [];
-
-
-    document
-        .querySelectorAll(
-            ".rider-checkbox"
-        )
-        .forEach(
-            checkbox => {
-
-                if (
-                    checkbox.checked
-                ) {
-
-                    selectedIndexes.push(
-                        Number(
-                            checkbox.dataset.index
-                        )
-                    );
-
-                }
-
-            }
-        );
-
-
-    if (
-        selectedIndexes.length === 0
-    ) {
-
-        alert(
-            "Please select at least one rider."
-        );
-
-        return;
-
-    }
-
-
-    /* ================================
-       COUNT ORDERS
-    ================================ */
-
-    const orderCount = {};
-
-
-    orderData.forEach(
-        row => {
-
-            const riderName =
-                normalizeText(
-                    getOrderRider(row)
-                );
-
-
-            if (!riderName) {
-
-                return;
-
-            }
-
-
-            orderCount[riderName] =
-                (
-                    orderCount[riderName]
-                    || 0
-                )
-                + 1;
-
-        }
-    );
-
-
-    /* ================================
-       CREATE RESULT
-    ================================ */
-
-    finalData = [];
-
-
-    selectedIndexes.forEach(
-        index => {
-
-            const rider =
-                riders[index];
-
-
-            const orders =
-                orderCount[
-                    rider.key
-                ]
-                || 0;
-
-
-            const orderAmount =
-                orders
-                * fuelRate;
-
-
-            finalData.push({
-
-                id: rider.id,
-
-                name: rider.name,
-
-                orders: orders,
-
-                orderAmount:
-                    orderAmount,
-
-                otherAmount: 0,
-
-                graveYardAmount: 0,
-
-                totalAmount:
-                    orderAmount
-
-            });
-
-        }
-    );
-
-
-    renderResult();
-
-
-    document
-        .getElementById(
-            "resultCard"
-        )
-        .style.display =
-        "block";
-
-
-    document
-        .getElementById(
-            "resultCard"
-        )
-        .scrollIntoView({
-
-            behavior: "smooth"
-
-        });
-
-}
-
-
-/* =====================================
-   RENDER RESULT
-===================================== */
-
-function renderResult() {
-
-    const body =
-        document.getElementById(
-            "resultBody"
-        );
-
-
-    body.innerHTML = "";
-
-
-    finalData.forEach(
-        (item, index) => {
-
-            const row =
-                document.createElement(
-                    "tr"
-                );
-
-
-            row.innerHTML = `
-
-                <td>
-                    ${item.id}
-                </td>
-
-                <td>
-                    ${item.name}
-                </td>
-
-                <td>
-                    ${item.orders}
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        item.orderAmount
-                    )}
-                </td>
-
-
-                <td>
-
-                    <input
-                        type="number"
-                        value="${item.otherAmount}"
-                        onchange="
-                            updateOther(
-                                ${index},
-                                this.value
-                            )
-                        "
-                    >
-
-                </td>
-
-
-                <td>
-
-                    <input
-                        type="number"
-                        value="${item.graveYardAmount}"
-                        onchange="
-                            updateGraveYard(
-                                ${index},
-                                this.value
-                            )
-                        "
-                    >
-
-                </td>
-
-
-                <td
-                    id="total-${index}"
-                >
-
-                    ${formatNumber(
-                        item.totalAmount
-                    )}
-
-                </td>
-
-            `;
-
-
-            body.appendChild(row);
-
-        }
-    );
-
-
-    updateTotals();
-
-}
-
-
-/* =====================================
-   UPDATE OTHER AMOUNT
-===================================== */
-
-function updateOther(
-    index,
-    value
-) {
-
-    finalData[index]
-        .otherAmount =
-        Number(value)
-        || 0;
-
-
-    updateRowTotal(index);
-
-
-    updateTotals();
-
-}
-
-
-/* =====================================
-   UPDATE GRAVE YARD
-===================================== */
-
-function updateGraveYard(
-    index,
-    value
-) {
-
-    finalData[index]
-        .graveYardAmount =
-        Number(value)
-        || 0;
-
-
-    updateRowTotal(index);
-
-
-    updateTotals();
-
-}
-
-
-/* =====================================
-   UPDATE ROW TOTAL
-===================================== */
-
-function updateRowTotal(index) {
-
-    const item =
-        finalData[index];
-
-
-    item.totalAmount =
-
-        item.orderAmount
-
-        + item.otherAmount
-
-        + item.graveYardAmount;
-
-
-    document
-        .getElementById(
-            `total-${index}`
-        )
-        .textContent =
-        formatNumber(
-            item.totalAmount
-        );
-
-}
-
-
-/* =====================================
-   UPDATE TOTALS
-===================================== */
-
-function updateTotals() {
-
-    const totalOrders =
-        finalData.reduce(
-            (sum, item) =>
-                sum + item.orders,
-            0
-        );
-
-
-    const totalOrderAmount =
-        finalData.reduce(
-            (sum, item) =>
-                sum
-                + item.orderAmount,
-            0
-        );
-
-
-    const totalOther =
-        finalData.reduce(
-            (sum, item) =>
-                sum
-                + item.otherAmount,
-            0
-        );
-
-
-    const totalGraveYard =
-        finalData.reduce(
-            (sum, item) =>
-                sum
-                + item.graveYardAmount,
-            0
-        );
-
-
-    const grandTotal =
-        finalData.reduce(
-            (sum, item) =>
-                sum
-                + item.totalAmount,
-            0
-        );
-
-
-    document
-        .getElementById(
-            "resultFooter"
-        )
-        .innerHTML = `
-
-            <tr class="total-row">
-
-                <td colspan="2">
-                    Total Order
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        totalOrders
-                    )}
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        totalOrderAmount
-                    )}
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        totalOther
-                    )}
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        totalGraveYard
-                    )}
-                </td>
-
-                <td>
-                    ${formatNumber(
-                        grandTotal
-                    )}
-                </td>
-
-            </tr>
-
-        `;
-
-}
-
-
-/* =====================================
-   FORMAT NUMBER
-===================================== */
-
-function formatNumber(number) {
-
-    return Number(
-        number || 0
-    )
-    .toLocaleString(
-        "en-PK",
-        {
-            maximumFractionDigits: 0
-        }
-    );
-
-}
-
-
-/* =====================================
-   DOWNLOAD EXCEL
-===================================== */
-
-function downloadExcel() {
-
-    if (
-        finalData.length === 0
-    ) {
-
-        alert(
-            "Please calculate adjustment first."
-        );
-
-        return;
-
-    }
-
-
-    const exportData =
-        finalData.map(
-            item => ({
-
-                "ID":
-                    item.id,
-
-                "Name":
-                    item.name,
-
-                "No. of Order":
-                    item.orders,
-
-                "Order Amount":
-                    item.orderAmount,
-
-                "Other amount":
-                    item.otherAmount,
-
-                "Grave yard order amount":
-                    item.graveYardAmount,
-
-                "Total Amount":
-                    item.totalAmount
-
-            })
-        );
-
-
-    /* TOTALS */
-
-    const totals = {
-
-        "ID":
-            "Total Order",
-
-        "Name":
-            "",
-
-        "No. of Order":
-            finalData.reduce(
-                (sum, item) =>
-                    sum + item.orders,
-                0
-            ),
-
-        "Order Amount":
-            finalData.reduce(
-                (sum, item) =>
-                    sum
-                    + item.orderAmount,
-                0
-            ),
-
-        "Other amount":
-            finalData.reduce(
-                (sum, item) =>
-                    sum
-                    + item.otherAmount,
-                0
-            ),
-
-        "Grave yard order amount":
-            finalData.reduce(
-                (sum, item) =>
-                    sum
-                    + item.graveYardAmount,
-                0
-            ),
-
-        "Total Amount":
-            finalData.reduce(
-                (sum, item) =>
-                    sum
-                    + item.totalAmount,
-                0
-            )
-
-    };
-
-
-    exportData.push(totals);
-
-
-    /* CREATE SHEET */
-
-    const worksheet =
-        XLSX.utils.json_to_sheet(
-            exportData
-        );
-
-
-    /* COLUMN WIDTH */
-
-    worksheet["!cols"] = [
-
-        { wch: 15 },
-
-        { wch: 30 },
-
-        { wch: 16 },
-
-        { wch: 18 },
-
-        { wch: 16 },
-
-        { wch: 28 },
-
-        { wch: 18 }
-
-    ];
-
-
-    /* CREATE WORKBOOK */
-
-    const workbook =
-        XLSX.utils.book_new();
-
-
-    XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        "Fuel Adjustment"
-    );
-
-
-    /* DATE */
-
-    const date =
-        new Date()
-        .toISOString()
-        .split("T")[0];
-
-
-    /* DOWNLOAD */
-
-    XLSX.writeFile(
-        workbook,
-        `Rider_Fuel_Adjustment_${date}.xlsx`
-    );
 
 }
 
 
 </script>
+
 
 </body>
 </html>
