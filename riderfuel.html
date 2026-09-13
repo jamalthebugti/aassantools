@@ -21,78 +21,163 @@ body{
 
 header{
     background:#111827;
-    color:#fff;
+    color:white;
     text-align:center;
     padding:22px;
 }
 
 header h1{margin:0}
-header p{color:#d1d5db;margin:8px 0 0}
+
+header p{
+    margin:8px 0 0;
+    color:#d1d5db;
+}
 
 .container{
-    max-width:950px;
+    max-width:1100px;
     margin:auto;
     padding:25px 15px;
 }
 
 .card{
-    background:#fff;
-    padding:25px;
+    background:white;
     border-radius:12px;
+    padding:25px;
+    margin-bottom:20px;
     box-shadow:0 3px 15px rgba(0,0,0,.08);
 }
 
-.grid{
+.upload-grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
     gap:20px;
 }
 
-.upload{
-    padding:20px;
+.upload-box{
     border:2px dashed #cbd5e1;
+    padding:20px;
     border-radius:10px;
     background:#f8fafc;
 }
 
-.upload label{
+.upload-box label{
     display:block;
     font-weight:bold;
     margin-bottom:10px;
 }
 
-.upload small{
+.upload-box small{
     display:block;
-    color:#64748b;
     margin-top:10px;
+    color:#64748b;
     line-height:1.5;
 }
 
-input{
+input[type=file],
+input[type=number]{
     width:100%;
     padding:11px;
     border:1px solid #cbd5e1;
     border-radius:7px;
 }
 
-.rate{
-    width:220px;
-    margin-top:25px;
-}
-
 button{
-    margin-top:25px;
     border:none;
-    background:#2563eb;
-    color:#fff;
-    padding:13px 22px;
     border-radius:7px;
+    padding:12px 20px;
+    cursor:pointer;
     font-size:15px;
     font-weight:bold;
-    cursor:pointer;
 }
 
-button:hover{opacity:.9}
+.primary{
+    background:#2563eb;
+    color:white;
+}
+
+.success-btn{
+    background:#059669;
+    color:white;
+}
+
+.secondary{
+    background:#e5e7eb;
+    color:#111827;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.actions{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.rate-box{
+    width:220px;
+    margin-top:20px;
+}
+
+#riderSection{
+    display:none;
+}
+
+.rider-tools{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+    flex-wrap:wrap;
+}
+
+.search-box{
+    width:100%;
+    padding:12px;
+    border:1px solid #cbd5e1;
+    border-radius:7px;
+    margin-bottom:15px;
+}
+
+.rider-list{
+    max-height:450px;
+    overflow:auto;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+}
+
+.rider-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:13px 15px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.rider-item:hover{
+    background:#f8fafc;
+}
+
+.rider-item:last-child{
+    border-bottom:none;
+}
+
+.rider-id{
+    font-size:13px;
+    color:#64748b;
+    min-width:70px;
+}
+
+.rider-name{
+    font-weight:bold;
+}
+
+.rider-orders{
+    margin-left:auto;
+    color:#2563eb;
+    font-size:13px;
+}
 
 #message{
     display:none;
@@ -101,10 +186,10 @@ button:hover{opacity:.9}
     border-radius:7px;
 }
 
-.success{
+.loading{
     display:block!important;
-    background:#dcfce7;
-    color:#166534;
+    background:#dbeafe;
+    color:#1d4ed8;
 }
 
 .error{
@@ -113,10 +198,23 @@ button:hover{opacity:.9}
     color:#991b1b;
 }
 
-.loading{
+.success{
     display:block!important;
-    background:#dbeafe;
-    color:#1d4ed8;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.info{
+    background:#f8fafc;
+    border-left:4px solid #2563eb;
+    padding:15px;
+    line-height:1.7;
+    margin-top:20px;
+}
+
+@media(max-width:600px){
+    .card{padding:17px}
+    header h1{font-size:22px}
 }
 </style>
 </head>
@@ -124,19 +222,19 @@ button:hover{opacity:.9}
 <body>
 
 <header>
-<h1>Rider Fuel Adjustment</h1>
-<p>Calculate rider orders and fuel amount automatically</p>
+    <h1>Rider Fuel Adjustment</h1>
+    <p>Select riders, count orders and calculate fuel automatically</p>
 </header>
 
 <div class="container">
 
 <div class="card">
 
-<h2>Upload Files</h2>
+<h2>1. Upload Files</h2>
 
-<div class="grid">
+<div class="upload-grid">
 
-<div class="upload">
+<div class="upload-box">
 
 <label>📋 Order List *</label>
 
@@ -147,15 +245,15 @@ accept=".xlsx,.xls,.csv"
 >
 
 <small>
-Required. Upload your Order List Excel file.
+Required. Upload the order list containing all rider orders.
 </small>
 
 </div>
 
 
-<div class="upload">
+<div class="upload-box">
 
-<label>📊 Fuel Amount Template (Optional)</label>
+<label>📊 Rider / Fuel Template — Optional</label>
 
 <input
 type="file"
@@ -164,8 +262,7 @@ accept=".xlsx"
 >
 
 <small>
-Optional. Upload only if you want the output
-to use your existing Excel template and design.
+Optional. Upload your rider/fuel template if you want to use its rider list and preserve its Excel design.
 </small>
 
 </div>
@@ -173,7 +270,7 @@ to use your existing Excel template and design.
 </div>
 
 
-<div class="rate">
+<div class="rate-box">
 
 <label><b>Fuel Per Order (Rs.)</b></label>
 
@@ -189,11 +286,96 @@ min="0"
 </div>
 
 
-<button onclick="processExcel()">
+<div class="actions">
+
+<button
+class="primary"
+onclick="loadRiders()"
+>
+Load Riders
+</button>
+
+</div>
+
+<div id="message"></div>
+
+</div>
+
+
+
+<div
+class="card"
+id="riderSection"
+>
+
+<h2>2. Choose Riders</h2>
+
+<p>
+Select only the riders you want to include in the final Fuel Adjustment.
+</p>
+
+<input
+type="text"
+class="search-box"
+id="riderSearch"
+placeholder="Search rider by Name or ID..."
+oninput="filterRiders()"
+>
+
+
+<div class="rider-tools">
+
+<button
+class="secondary"
+onclick="selectAllRiders()"
+>
+Select All
+</button>
+
+<button
+class="secondary"
+onclick="clearAllRiders()"
+>
+Clear All
+</button>
+
+</div>
+
+
+<div
+class="rider-list"
+id="riderList"
+></div>
+
+
+<div class="actions">
+
+<button
+class="success-btn"
+onclick="generateOutput()"
+>
 Generate Fuel Adjustment
 </button>
 
-<div id="message"></div>
+</div>
+
+<div class="info">
+
+<b>Calculation:</b>
+
+<br>
+
+No. of Orders × Fuel Rate = Order Amount
+
+<br>
+
+Total Amount = Order Amount + Other Amount + Grave Yard Amount
+
+<br><br>
+
+If a rider ID exists, it will appear only in the ID column.
+
+</div>
 
 </div>
 
@@ -202,16 +384,26 @@ Generate Fuel Adjustment
 
 <script>
 
+let detectedRiders=[];
+let orderRows=[];
+let riderColumn=null;
+let idColumn=null;
+
+
+/* MESSAGE */
+
 function showMessage(text,type){
 
-    const box=document.getElementById("message");
+    const box=
+    document.getElementById("message");
 
     box.textContent=text;
-
     box.className=type;
 
 }
 
+
+/* NORMALIZE */
 
 function normalizeText(value){
 
@@ -226,6 +418,8 @@ function normalizeText(value){
 }
 
 
+/* TITLE CASE */
+
 function titleCase(value){
 
     return String(value||"")
@@ -238,15 +432,21 @@ function titleCase(value){
 
     .split(" ")
 
-    .map(word=>
-        word.charAt(0).toUpperCase()
-        +word.slice(1)
-    )
+    .map(word=>{
+
+        if(!word)return "";
+
+        return word.charAt(0).toUpperCase()
+        +word.slice(1);
+
+    })
 
     .join(" ");
 
 }
 
+
+/* COLUMN */
 
 function normalizeColumn(value){
 
@@ -267,8 +467,8 @@ function findColumn(row,names){
 
         const target=normalizeColumn(name);
 
-        const found=keys.find(
-            key=>normalizeColumn(key)===target
+        const found=keys.find(key=>
+            normalizeColumn(key)===target
         );
 
         if(found)return found;
@@ -280,28 +480,32 @@ function findColumn(row,names){
 }
 
 
-function readOrderFile(file){
+/* READ FILE */
+
+function readExcelFile(file){
 
     return new Promise((resolve,reject)=>{
 
         const reader=new FileReader();
 
-        reader.onload=function(event){
+        reader.onload=function(e){
 
             try{
 
                 const workbook=XLSX.read(
-                    event.target.result,
+                    e.target.result,
                     {type:"array"}
                 );
 
                 let rows=[];
 
-                workbook.SheetNames.forEach(name=>{
+                workbook.SheetNames.forEach(sheetName=>{
 
-                    const sheet=workbook.Sheets[name];
+                    const sheet=
+                    workbook.Sheets[sheetName];
 
-                    const data=XLSX.utils.sheet_to_json(
+                    const data=
+                    XLSX.utils.sheet_to_json(
                         sheet,
                         {defval:""}
                     );
@@ -322,6 +526,8 @@ function readOrderFile(file){
 
         };
 
+        reader.onerror=reject;
+
         reader.readAsArrayBuffer(file);
 
     });
@@ -329,44 +535,58 @@ function readOrderFile(file){
 }
 
 
-function extractRider(row,riderColumn,idColumn){
+/* EXTRACT RIDER */
 
-    let raw=String(
+function extractRider(row){
+
+    let rawName=String(
         row[riderColumn]||""
     )
 
-    .trim()
+    .replace(/\s+/g," ")
 
-    .replace(/\s+/g," ");
+    .trim();
 
 
-    let id=idColumn
+    let id="";
 
-    ?String(row[idColumn]||"")
 
-    .replace(/[^0-9]/g,"")
+    if(idColumn){
 
-    .trim()
+        id=String(
+            row[idColumn]||""
+        )
 
-    :"";
+        .replace(/[^0-9]/g,"")
 
+        .trim();
+
+    }
+
+
+    /*
+    FIND ID INSIDE NAME
+    */
 
     if(!id){
 
-        const match=raw.match(
-            /(?:^|\s|\(|-)(\d{3,})(?:\)|\s|$)/
-        );
+        const match=
+        rawName.match(/\b\d{3,}\b/);
 
         if(match){
 
-            id=match[1];
+            id=match[0];
 
         }
 
     }
 
 
-    let name=raw;
+    /*
+    REMOVE ID FROM NAME
+    */
+
+    let name=rawName;
 
 
     if(id){
@@ -397,31 +617,26 @@ function extractRider(row,riderColumn,idColumn){
 
         name:titleCase(name),
 
-        key:normalizeText(name)
+        normalizedName:
+        normalizeText(name)
 
     };
 
 }
 
 
-async function processExcel(){
+/* LOAD RIDERS */
 
-    const orderFile=
+async function loadRiders(){
+
+    const file=
     document.getElementById("orderFile").files[0];
 
-    const templateFile=
-    document.getElementById("templateFile").files[0];
 
-    const fuelRate=
-    Number(
-        document.getElementById("fuelRate").value
-    )||61;
-
-
-    if(!orderFile){
+    if(!file){
 
         showMessage(
-            "Please upload the Order List.",
+            "Please upload the Order List first.",
             "error"
         );
 
@@ -438,11 +653,11 @@ async function processExcel(){
         );
 
 
-        const rows=
-        await readOrderFile(orderFile);
+        orderRows=
+        await readExcelFile(file);
 
 
-        if(!rows.length){
+        if(!orderRows.length){
 
             throw new Error(
                 "Order List is empty."
@@ -451,27 +666,37 @@ async function processExcel(){
         }
 
 
-        const sample=rows[0];
+        const sample=
+        orderRows[0];
 
 
-        const riderColumn=findColumn(
+        riderColumn=
+        findColumn(
             sample,
             [
+
+                "Assigned To",
+                "AssignedTo",
                 "Rider",
                 "Rider Name",
-                "Assigned To",
-                "AssignedTo"
+                "Delivery Rider",
+                "Name"
+
             ]
         );
 
 
-        const idColumn=findColumn(
+        idColumn=
+        findColumn(
             sample,
             [
+
                 "Rider ID",
                 "RiderID",
                 "Employee ID",
+                "EmployeeID",
                 "ID"
+
             ]
         );
 
@@ -479,29 +704,19 @@ async function processExcel(){
         if(!riderColumn){
 
             throw new Error(
-                "Rider column not found."
+                "Could not find Rider / Assigned To column."
             );
 
         }
 
 
-        showMessage(
-            "Counting rider orders...",
-            "loading"
-        );
+        const riderMap={};
 
 
-        const riders={};
-
-
-        rows.forEach(row=>{
+        orderRows.forEach(row=>{
 
             const rider=
-            extractRider(
-                row,
-                riderColumn,
-                idColumn
-            );
+            extractRider(row);
 
 
             if(!rider.name&&!rider.id)return;
@@ -511,87 +726,90 @@ async function processExcel(){
 
             rider.id
 
-            ? "id_"+rider.id
+            ? "ID_"+rider.id
 
-            : "name_"+rider.key;
+            : "NAME_"+rider.normalizedName;
 
 
-            if(!riders[key]){
+            if(!riderMap[key]){
 
-                riders[key]={
+                riderMap[key]={
 
                     id:rider.id,
 
                     name:rider.name,
 
-                    orders:0
+                    orders:0,
+
+                    selected:false
 
                 };
 
             }
 
 
-            riders[key].orders++;
+            riderMap[key].orders++;
 
         });
 
 
-        const finalData=
-        Object.values(riders)
+        detectedRiders=
+        Object.values(riderMap)
 
-        .map(rider=>({
 
-            id:rider.id,
+        .sort((a,b)=>
+            a.name.localeCompare(b.name)
+        );
 
-            name:rider.name,
 
-            orders:rider.orders,
+        renderRiders();
 
-            orderAmount:
-            rider.orders*fuelRate,
 
-            otherAmount:0,
+        document
+        .getElementById("riderSection")
+        .style.display="block";
 
-            graveYardAmount:0,
 
-            totalAmount:
-            rider.orders*fuelRate
+        showMessage(
+            detectedRiders.length+
+            " riders detected. Please select riders.",
+            "success"
+        );
 
-        }));
+
+        /*
+        OPTIONAL TEMPLATE
+        */
+
+        const templateFile=
+        document
+        .getElementById("templateFile")
+        .files[0];
 
 
         if(templateFile){
 
-            showMessage(
-                "Updating your original template...",
-                "loading"
-            );
+            try{
 
-            await updateTemplate(
-                templateFile,
-                finalData
-            );
+                await selectTemplateRiders(
+                    templateFile
+                );
 
-        }
+                renderRiders();
 
-        else{
+            }
 
-            showMessage(
-                "Creating Excel output...",
-                "loading"
-            );
+            catch(error){
 
-            downloadStandardExcel(
-                finalData
-            );
+                console.log(
+                    "Template rider detection skipped",
+                    error
+                );
+
+            }
 
         }
 
-
-        showMessage(
-            "Fuel Adjustment generated successfully!",
-            "success"
-        );
 
     }
 
@@ -609,26 +827,399 @@ async function processExcel(){
 }
 
 
-function downloadStandardExcel(data){
+/* RENDER RIDERS */
 
-    const output=data.map(item=>({
+function renderRiders(){
 
-        "ID":item.id,
+    const list=
+    document.getElementById("riderList");
 
-        "Name":item.name,
 
-        "No. of Order":item.orders,
+    const search=
+    normalizeText(
+        document
+        .getElementById("riderSearch")
+        .value
+    );
 
-        "Order Amount":item.orderAmount,
 
-        "Other amount":item.otherAmount,
+    list.innerHTML="";
 
-        "Grave yard order amount":
-        item.graveYardAmount,
 
-        "Total Amount":item.totalAmount
+    detectedRiders
+
+    .filter(rider=>{
+
+        return (
+
+            normalizeText(rider.name)
+            .includes(search)
+
+            ||
+
+            String(rider.id)
+            .includes(search)
+
+        );
+
+    })
+
+    .forEach((rider,index)=>{
+
+        const realIndex=
+        detectedRiders.indexOf(rider);
+
+
+        const item=
+        document.createElement("div");
+
+        item.className="rider-item";
+
+
+        item.innerHTML=`
+
+        <input
+        type="checkbox"
+        ${rider.selected?"checked":""}
+        onchange="toggleRider(${realIndex},this.checked)"
+        >
+
+        <div class="rider-id">
+        ${rider.id||"No ID"}
+        </div>
+
+        <div class="rider-name">
+        ${rider.name}
+        </div>
+
+        <div class="rider-orders">
+        ${rider.orders} Orders
+        </div>
+
+        `;
+
+
+        list.appendChild(item);
+
+    });
+
+}
+
+
+/* TOGGLE */
+
+function toggleRider(index,value){
+
+    detectedRiders[index].selected=value;
+
+}
+
+
+/* FILTER */
+
+function filterRiders(){
+
+    renderRiders();
+
+}
+
+
+/* SELECT ALL */
+
+function selectAllRiders(){
+
+    detectedRiders.forEach(rider=>{
+        rider.selected=true;
+    });
+
+    renderRiders();
+
+}
+
+
+/* CLEAR ALL */
+
+function clearAllRiders(){
+
+    detectedRiders.forEach(rider=>{
+        rider.selected=false;
+    });
+
+    renderRiders();
+
+}
+
+
+/* READ TEMPLATE RIDERS */
+
+async function selectTemplateRiders(file){
+
+    const buffer=
+    await file.arrayBuffer();
+
+
+    const workbook=
+    new ExcelJS.Workbook();
+
+
+    await workbook.xlsx.load(buffer);
+
+
+    let templateRiders=[];
+
+
+    workbook.worksheets.forEach(sheet=>{
+
+        let idCol=null;
+        let nameCol=null;
+        let headerRow=null;
+
+
+        sheet.eachRow(row=>{
+
+            row.eachCell(cell=>{
+
+                const text=
+                normalizeColumn(
+                    cell.text||
+                    cell.value||
+                    ""
+                );
+
+
+                if(text==="id"){
+
+                    idCol=cell.col;
+                    headerRow=row.number;
+
+                }
+
+
+                if(text==="name"){
+
+                    nameCol=cell.col;
+
+                }
+
+            });
+
+        });
+
+
+        if(!nameCol)return;
+
+
+        for(
+            let r=headerRow+1;
+            r<=sheet.rowCount;
+            r++
+        ){
+
+            const row=
+            sheet.getRow(r);
+
+
+            const id=idCol
+
+            ?String(
+                row.getCell(idCol).value||""
+            )
+
+            .replace(/[^0-9]/g,"")
+
+            :"";
+
+
+            const name=
+            String(
+                row.getCell(nameCol).text||
+                row.getCell(nameCol).value||
+                ""
+            ).trim();
+
+
+            if(name){
+
+                if(
+                    normalizeText(name)
+                    .includes("total order")
+                )break;
+
+
+                templateRiders.push({
+
+                    id:id,
+
+                    name:
+                    normalizeText(name)
+
+                });
+
+            }
+
+        }
+
+    });
+
+
+    if(!templateRiders.length)return;
+
+
+    /*
+    AUTO SELECT RIDERS
+    FOUND IN TEMPLATE
+    */
+
+    detectedRiders.forEach(rider=>{
+
+        const found=
+        templateRiders.some(template=>{
+
+            if(
+                template.id &&
+                rider.id
+            ){
+
+                return (
+                    template.id===rider.id
+                );
+
+            }
+
+
+            return (
+
+                template.name===
+                normalizeText(rider.name)
+
+            );
+
+        });
+
+
+        if(found){
+
+            rider.selected=true;
+
+        }
+
+    });
+
+}
+
+
+/* GENERATE */
+
+async function generateOutput(){
+
+    const selected=
+
+    detectedRiders.filter(
+        rider=>rider.selected
+    );
+
+
+    if(!selected.length){
+
+        alert(
+            "Please select at least one rider."
+        );
+
+        return;
+
+    }
+
+
+    const fuelRate=
+    Number(
+        document
+        .getElementById("fuelRate")
+        .value
+    )||61;
+
+
+    const data=
+
+    selected.map(rider=>({
+
+        id:rider.id,
+
+        name:rider.name,
+
+        orders:rider.orders,
+
+        orderAmount:
+        rider.orders*fuelRate,
+
+        otherAmount:0,
+
+        graveYardAmount:0,
+
+        totalAmount:
+        rider.orders*fuelRate
 
     }));
+
+
+    const templateFile=
+    document
+    .getElementById("templateFile")
+    .files[0];
+
+
+    if(templateFile){
+
+        await generateTemplateOutput(
+            templateFile,
+            data
+        );
+
+    }
+
+    else{
+
+        generateStandardOutput(
+            data
+        );
+
+    }
+
+}
+
+
+/* STANDARD EXCEL */
+
+function generateStandardOutput(data){
+
+    const output=[];
+
+
+    data.forEach(item=>{
+
+        output.push({
+
+            "ID":item.id,
+
+            "Name":item.name,
+
+            "No. of Order":
+            item.orders,
+
+            "Order Amount":
+            item.orderAmount,
+
+            "Other amount":
+            item.otherAmount,
+
+            "Grave yard order amount":
+            item.graveYardAmount,
+
+            "Total Amount":
+            item.totalAmount
+
+        });
+
+    });
 
 
     output.push({
@@ -639,12 +1230,16 @@ function downloadStandardExcel(data){
 
         "No. of Order":
         data.reduce(
-            (a,b)=>a+b.orders,0
+            (sum,item)=>
+            sum+item.orders,
+            0
         ),
 
         "Order Amount":
         data.reduce(
-            (a,b)=>a+b.orderAmount,0
+            (sum,item)=>
+            sum+item.orderAmount,
+            0
         ),
 
         "Other amount":0,
@@ -653,14 +1248,18 @@ function downloadStandardExcel(data){
 
         "Total Amount":
         data.reduce(
-            (a,b)=>a+b.totalAmount,0
+            (sum,item)=>
+            sum+item.totalAmount,
+            0
         )
 
     });
 
 
     const sheet=
-    XLSX.utils.json_to_sheet(output);
+    XLSX.utils.json_to_sheet(
+        output
+    );
 
 
     sheet["!cols"]=[
@@ -669,7 +1268,7 @@ function downloadStandardExcel(data){
         {wch:28},
         {wch:15},
         {wch:18},
-        {wch:15},
+        {wch:18},
         {wch:28},
         {wch:18}
 
@@ -687,30 +1286,20 @@ function downloadStandardExcel(data){
     );
 
 
-    const date=
-    new Date()
-    .toISOString()
-    .split("T")[0];
-
-
     XLSX.writeFile(
         workbook,
-        "Rider_Fuel_Adjustment_"
-        +date+
-        ".xlsx"
+        "Rider_Fuel_Adjustment.xlsx"
     );
 
 }
 
 
-async function updateTemplate(
-    file,
-    finalData
-){
+/* TEMPLATE OUTPUT */
 
-    /*
-    LOAD ORIGINAL TEMPLATE
-    */
+async function generateTemplateOutput(
+    file,
+    data
+){
 
     const buffer=
     await file.arrayBuffer();
@@ -723,31 +1312,56 @@ async function updateTemplate(
     await workbook.xlsx.load(buffer);
 
 
-    /*
-    FIND MAIN SHEET
-    */
-
-    let worksheet=
-    workbook.worksheets[0];
+    let worksheet=null;
 
 
-    for(const sheet of workbook.worksheets){
+    let headerRow=null;
+    let idCol=null;
+    let nameCol=null;
+    let orderCol=null;
+    let orderAmountCol=null;
+    let otherCol=null;
+    let graveCol=null;
+    let totalCol=null;
 
-        let found=false;
+
+    for(
+        const sheet
+        of workbook.worksheets
+    ){
+
+        let tempHeader=null;
+        let tempName=null;
+        let tempOrder=null;
+
 
         sheet.eachRow(row=>{
 
             row.eachCell(cell=>{
 
-                const text=normalizeColumn(
-                    cell.text||cell.value
+                const text=
+                normalizeColumn(
+                    cell.text||
+                    cell.value||
+                    ""
                 );
 
-                if(
-                    text==="nooforder"
-                ){
 
-                    found=true;
+                if(text==="id"){
+
+                    tempHeader=row.number;
+
+                }
+
+                if(text==="name"){
+
+                    tempName=cell.col;
+
+                }
+
+                if(text==="nooforder"){
+
+                    tempOrder=cell.col;
 
                 }
 
@@ -755,9 +1369,17 @@ async function updateTemplate(
 
         });
 
-        if(found){
+
+        if(
+            tempHeader&&
+            tempName&&
+            tempOrder
+        ){
 
             worksheet=sheet;
+            headerRow=tempHeader;
+            nameCol=tempName;
+            orderCol=tempOrder;
 
             break;
 
@@ -766,109 +1388,61 @@ async function updateTemplate(
     }
 
 
-    /*
-    FIND HEADER ROW
-    */
-
-    let headerRow=0;
-
-    let idCol=0;
-    let nameCol=0;
-    let orderCol=0;
-    let orderAmountCol=0;
-    let otherCol=0;
-    let graveCol=0;
-    let totalCol=0;
-
-
-    worksheet.eachRow(row=>{
-
-        row.eachCell(cell=>{
-
-            const text=
-            normalizeColumn(
-                cell.text||cell.value
-            );
-
-
-            if(text==="id"){
-
-                headerRow=row.number;
-                idCol=cell.col;
-
-            }
-
-
-            if(text==="name"){
-
-                nameCol=cell.col;
-
-            }
-
-
-            if(
-                text==="nooforder"
-            ){
-
-                orderCol=cell.col;
-
-            }
-
-
-            if(
-                text==="orderamount"
-            ){
-
-                orderAmountCol=cell.col;
-
-            }
-
-
-            if(
-                text==="otheramount"
-            ){
-
-                otherCol=cell.col;
-
-            }
-
-
-            if(
-                text==="graveyardorderamount"
-            ){
-
-                graveCol=cell.col;
-
-            }
-
-
-            if(
-                text==="totalamount"
-            ){
-
-                totalCol=cell.col;
-
-            }
-
-        });
-
-    });
-
-
-    if(!headerRow||!nameCol||!orderCol){
+    if(!worksheet){
 
         throw new Error(
-            "Could not read the template columns."
+            "Could not find rider table in template."
         );
 
     }
 
 
     /*
-    UPDATE EXISTING RIDERS
+    FIND ALL COLUMNS
     */
 
-    let index=0;
+    worksheet.getRow(headerRow)
+    .eachCell(cell=>{
+
+        const text=
+        normalizeColumn(
+            cell.text||
+            cell.value||
+            ""
+        );
+
+
+        if(text==="id")
+        idCol=cell.col;
+
+        if(text==="name")
+        nameCol=cell.col;
+
+        if(text==="nooforder")
+        orderCol=cell.col;
+
+        if(text==="orderamount")
+        orderAmountCol=cell.col;
+
+        if(text==="otheramount")
+        otherCol=cell.col;
+
+        if(text==="graveyardorderamount")
+        graveCol=cell.col;
+
+        if(text==="totalamount")
+        totalCol=cell.col;
+
+    });
+
+
+    /*
+    WRITE SELECTED RIDERS
+    */
+
+    let currentRow=
+    headerRow+1;
+
 
     let totalOrders=0;
     let totalOrderAmount=0;
@@ -877,28 +1451,122 @@ async function updateTemplate(
     let grandTotal=0;
 
 
-    for(
-        let rowNumber=headerRow+1;
-        rowNumber<=worksheet.rowCount;
-        rowNumber++
-    ){
+    for(const item of data){
 
         const row=
-        worksheet.getRow(rowNumber);
-
-
-        const firstText=
-        normalizeText(
-            row.getCell(1).text
-        );
+        worksheet.getRow(currentRow);
 
 
         /*
-        STOP AT TOTAL ROW
+        STOP IF TOTAL ROW
         */
 
+        const rowText=
+
+        String(
+            row.getCell(1).text||
+            row.getCell(1).value||
+            ""
+        ).toLowerCase();
+
+
         if(
-            firstText.includes("total order")
+            rowText.includes("total")
+        )break;
+
+
+        if(idCol)
+        row.getCell(idCol).value=
+        item.id;
+
+        row.getCell(nameCol).value=
+        item.name;
+
+        row.getCell(orderCol).value=
+        item.orders;
+
+        if(orderAmountCol)
+        row.getCell(orderAmountCol).value=
+        item.orderAmount;
+
+
+        const other=
+
+        otherCol
+
+        ?Number(
+            row.getCell(otherCol).value
+        )||0
+
+        :0;
+
+
+        const grave=
+
+        graveCol
+
+        ?Number(
+            row.getCell(graveCol).value
+        )||0
+
+        :0;
+
+
+        const total=
+
+        item.orderAmount+
+        other+
+        grave;
+
+
+        if(totalCol)
+        row.getCell(totalCol).value=
+        total;
+
+
+        totalOrders+=item.orders;
+        totalOrderAmount+=item.orderAmount;
+        totalOther+=other;
+        totalGrave+=grave;
+        grandTotal+=total;
+
+
+        currentRow++;
+
+    }
+
+
+    /*
+    FIND TOTAL ROW
+    */
+
+    for(
+        let r=currentRow;
+        r<=worksheet.rowCount;
+        r++
+    ){
+
+        const row=
+        worksheet.getRow(r);
+
+
+        let text="";
+
+
+        row.eachCell(cell=>{
+
+            text+=" "+
+            normalizeText(
+                cell.text||
+                cell.value||
+                ""
+            );
+
+        });
+
+
+        if(
+            text.includes("total order")
         ){
 
             if(orderCol)
@@ -924,94 +1592,6 @@ async function updateTemplate(
             break;
 
         }
-
-
-        /*
-        STOP IF NO MORE DATA
-        */
-
-        if(index>=finalData.length){
-
-            continue;
-
-        }
-
-
-        const item=
-        finalData[index];
-
-
-        /*
-        WRITE VALUES ONLY
-        */
-
-        if(idCol)
-        row.getCell(idCol).value=item.id;
-
-        row.getCell(nameCol).value=item.name;
-
-        row.getCell(orderCol).value=item.orders;
-
-        if(orderAmountCol)
-        row.getCell(orderAmountCol).value=
-        item.orderAmount;
-
-
-        /*
-        KEEP EXISTING OTHER AMOUNT
-        */
-
-        let other=0;
-
-        if(otherCol){
-
-            other=
-            Number(
-                row.getCell(otherCol).value
-            )||0;
-
-        }
-
-
-        /*
-        KEEP EXISTING GRAVE AMOUNT
-        */
-
-        let grave=0;
-
-        if(graveCol){
-
-            grave=
-            Number(
-                row.getCell(graveCol).value
-            )||0;
-
-        }
-
-
-        const total=
-        item.orderAmount
-        +other
-        +grave;
-
-
-        if(totalCol)
-        row.getCell(totalCol).value=total;
-
-
-        totalOrders+=item.orders;
-
-        totalOrderAmount+=
-        item.orderAmount;
-
-        totalOther+=other;
-
-        totalGrave+=grave;
-
-        grandTotal+=total;
-
-
-        index++;
 
     }
 
@@ -1044,7 +1624,6 @@ async function updateTemplate(
 
     link.href=url;
 
-
     link.download=
     "Rider_Fuel_Adjustment.xlsx";
 
@@ -1056,6 +1635,11 @@ async function updateTemplate(
     link.remove();
 
     URL.revokeObjectURL(url);
+
+
+    alert(
+        "Fuel Adjustment generated successfully!"
+    );
 
 }
 
