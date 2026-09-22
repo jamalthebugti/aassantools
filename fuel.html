@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rider Fuel & Out-of-Radius Reports</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--text:#182230;--muted:#687386;--line:#dce2ea;--primary:#155eef;--dark:#102a43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Arial,sans-serif;color:var(--text)}
+.container{max-width:1250px;margin:24px auto;padding:0 16px}.hero{background:linear-gradient(135deg,#102a43,#155eef);color:#fff;border-radius:18px;padding:25px;box-shadow:0 10px 30px #102a4325}
+h1{margin:0 0 8px;font-size:27px}.hero p{margin:0;opacity:.9}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px;box-shadow:0 5px 18px #102a4310}
+h2{margin:0 0 15px;font-size:20px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}
+label{font-weight:700;font-size:13px;display:block;margin-bottom:7px}input[type=file],select,input[type=number],input[type=text]{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}
+button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer;background:var(--primary);color:#fff;margin:5px 5px 0 0}
+button.secondary{background:#e8eefc;color:#155eef}button.dark{background:var(--dark)}button.danger{background:#b42318}
+.status{margin-top:12px;color:var(--muted);font-size:13px}.hidden{display:none}.toolbar{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}th,td{border:1px solid var(--line);padding:9px;text-align:left}th{background:#eef3f9;font-weight:700}td.num{text-align:right}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+.pill{display:inline-block;padding:4px 8px;border-radius:20px;background:#e7f6ec;color:#16713b;font-size:12px;font-weight:700}.note{font-size:12px;color:var(--muted);line-height:1.5}
+.area-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;max-height:330px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:10px}
+.area-item{display:flex;gap:8px;align-items:center;font-size:13px}.area-item input{width:auto}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}.kpi{background:#f7f9fc;border:1px solid var(--line);padding:13px;border-radius:10px}.kpi b{display:block;font-size:22px;margin-top:4px}
+@media print{button,input,select,.no-print{display:none!important}.card{box-shadow:none;break-inside:avoid}.hero{color:#000;background:#fff;border:1px solid #ddd}.tablewrap{overflow:visible}}
+</style>
+</head>
+<body>
+<div class="container">
+  <section class="hero">
+    <h1>Rider Fuel & Out-of-Radius Reports</h1>
+    <p>Two separate reports in one HTML tool. Order details remain based on the selected source file.</p>
+  </section>
+
+  <section class="card">
+    <h2>1. Upload Files</h2>
+    <div class="grid">
+      <div><label>Order List file (required)</label><input id="orderFile" type="file" accept=".xls,.xlsx,.csv,.html,.htm"></div>
+      <div><label>Area Efficiency Report (optional, for Report 2)</label><input id="areaFile" type="file" accept=".xls,.xlsx,.csv,.html,.htm"></div>
+    </div>
+    <div class="toolbar">
+      <button onclick="loadOrderFile()">Load Order List</button>
+      <button class="secondary" onclick="loadAreaFile()">Load Area Report</button>
+    </div>
+    <div id="status" class="status">No files loaded yet.</div>
+  </section>
+
+  <section class="card">
+    <h2>Report 1 — Fuel Adjustment / Order List</h2>
+    <div class="grid">
+      <div><label>Fuel rate per order (Rs.)</label><input id="fuelRate" type="number" value="61" min="0"></div>
+      <div><label>Rider selection</label><select id="riderMode" onchange="toggleRiderSelection()"><option value="all">All riders</option><option value="selected">Selected riders only</option></select></div>
+    </div>
+    <div id="riderSelectionBox" class="hidden" style="margin-top:15px">
+      <label>Select riders</label><div id="riderList" class="area-list"></div>
+    </div>
+    <div class="toolbar">
+      <button onclick="generateFuelReport()">Generate Fuel Report</button>
+      <button class="secondary" onclick="downloadCSV('fuelTable','fuel-adjustment-report.csv')">Download CSV</button>
+      <button class="dark" onclick="print()">Print</button>
+    </div>
+    <div id="fuelSummary" class="kpis"></div>
+    <div class="tablewrap"><table id="fuelTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="card">
+    <h2>Report 2 — Out-of-Radius Areas</h2>
+    <p class="note">Areas come from the Area Efficiency Report. Their order numbers are matched against the Order List. Rider name and ID are taken from the Order List only.</p>
+    <div class="toolbar">
+      <button class="secondary" onclick="selectAllAreas(true)">Select all areas</button>
+      <button class="secondary" onclick="selectAllAreas(false)">Clear areas</button>
+    </div>
+    <div id="areaList" class="area-list"><span class="note">Load an Area Efficiency Report first.</span></div>
+    <div class="toolbar">
+      <button onclick="generateRadiusReport()">Generate Out-of-Radius Report</button>
+      <button class="secondary" onclick="downloadCSV('radiusTable','out-of-radius-report.csv')">Download CSV</button>
+      <button class="dark" onclick="print()">Print</button>
+    </div>
+    <div id="radiusSummary" class="kpis"></div>
+    <div class="tablewrap"><table id="radiusTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+</div>
+
+<script>
+let orderRows=[], areaRows=[], riders=[], areas=[], fuelOutput=[], radiusOutput=[];
+const $=id=>document.getElementById(id);
+const clean=v=>String(v??'').replace(/\s+/g,' ').trim();
+const norm=v=>clean(v).toLowerCase().replace(/[^a-z0-9]/g,'');
+const money=v=>Number(v||0).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});
+const firstCap=s=>clean(s).toLowerCase().split(' ').filter(Boolean).map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' ');
+function status(s){$('status').textContent=s}
+function readWorkbook(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});resolve(wb)}catch(err){reject(err)}};r.onerror=reject;r.readAsArrayBuffer(file)})}
+function sheetObjects(wb){let ws=wb.Sheets[wb.SheetNames[0]];return XLSX.utils.sheet_to_json(ws,{defval:'',raw:false})}
+function findKey(row,keys){let ks=Object.keys(row);let k=ks.find(x=>keys.includes(norm(x)));return k||null}
+function value(row,keys){let k=findKey(row,keys);return k?row[k]:''}
+function parseRider(raw){
+  let s=clean(raw); if(!s)return {name:'',id:''};
+  let m=s.match(/(?:\(|\.?\s*)(\d{4,6})\s*\)?\s*$/);
+  let id=m?m[1]:'';
+  let name=m? s.slice(0,m.index).replace(/[().]+$/,'').trim():s;
+  return {name:firstCap(name),id:id};
+}
+function orderNumber(v){return clean(v).replace(/\s+/g,'').toLowerCase()}
+async function loadOrderFile(){
+ try{
+  let f=$('orderFile').files[0];if(!f){alert('Please select an Order List file.');return}
+  let wb=await readWorkbook(f);orderRows=sheetObjects(wb);
+  if(!orderRows.length){throw Error('No rows found in Order List.')}
+  let riderKey=findKey(orderRows[0],['rider','deliveryrider','ridername']);
+  if(!riderKey){throw Error('Rider column was not found in the Order List.')}
+  let set=new Map();
+  orderRows.forEach(r=>{let p=parseRider(r[riderKey]);if(p.name||p.id){let key=(p.id||norm(p.name));if(!set.has(key))set.set(key,p)}});
+  riders=[...set.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  $('riderList').innerHTML=riders.map((r,i)=>`<label class="area-item"><input type="checkbox" value="${i}"> ${r.name}${r.id?' ('+r.id+')':''}</label>`).join('');
+  status(`Order List loaded: ${orderRows.length.toLocaleString()} rows; ${riders.length} rider entries detected.`);
+ }catch(e){alert(e.message);status('Could not load Order List.')}
+}
+async function loadAreaFile(){
+ try{
+  let f=$('areaFile').files[0];if(!f){alert('Please select an Area Efficiency Report.');return}
+  let wb=await readWorkbook(f), rows=sheetObjects(wb);
+  let areaKey=rows.length?findKey(rows[0],['area']):null;
+  let countKey=rows.length?findKey(rows[0],['numberoforders','orders','nooforders']):null;
+  if(!areaKey){ // fallback: search every row/column for Area header
+    let ws=wb.Sheets[wb.SheetNames[0]], matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+    let headerIndex=matrix.findIndex(row=>row.some(x=>norm(x)==='area'));
+    if(headerIndex>=0){
+      let h=matrix[headerIndex];rows=matrix.slice(headerIndex+1).map(a=>Object.fromEntries(h.map((x,i)=>[x,a[i]??''])));
+      areaKey=findKey(rows[0]||{},['area']);countKey=findKey(rows[0]||{},['numberoforders','orders','nooforders']);
+    }
+  }
+  if(!areaKey)throw Error('Area column was not found.');
+  let set=new Map();
+  rows.forEach(r=>{let a=clean(r[areaKey]);if(a&&norm(a)!=='total'&&norm(a)!=='area'){if(!set.has(a))set.set(a,clean(countKey?r[countKey]:''))}});
+  areas=[...set.entries()].map(([name,count])=>({name,count})).filter(x=>x.name);
+  $('areaList').innerHTML=areas.map((a,i)=>`<label class="area-item"><input type="checkbox" value="${i}"> ${a.name}${a.count?' — '+a.count:''}</label>`).join('');
+  status(`Area Report loaded: ${areas.length} areas detected.`);
+ }catch(e){alert(e.message);status('Could not load Area Report.')}
+}
+function toggleRiderSelection(){$('riderSelectionBox').classList.toggle('hidden',$('riderMode').value!=='selected')}
+function selectedRiders(){
+ if($('riderMode').value==='all')return null;
+ return new Set([...$('riderList').querySelectorAll('input:checked')].map(x=>Number(x.value)).map(i=>(riders[i].id||norm(riders[i].name))));
+}
+function getOrderFields(row){
+ let bill=value(row,['billno','orderno','order number','ordernumber']);
+ let rider=value(row,['rider','deliveryrider','ridername']);
+ let amount=value(row,['orderamount','amount','grandamount','totalamount']);
+ let other=value(row,['otheramount','other amount']);
+ let grave=value(row,['graveyardorderamount','graveyard amount','graveyard']);
+ return {bill:orderNumber(bill),rider:parseRider(rider),amount:parseFloat(String(amount).replace(/,/g,''))||0,other:parseFloat(String(other).replace(/,/g,''))||0,grave:parseFloat(String(grave).replace(/,/g,''))||0};
+}
+function generateFuelReport(){
+ if(!orderRows.length){alert('Load the Order List first.');return}
+ let chosen=selectedRiders(), map=new Map();
+ orderRows.forEach(row=>{
+  let x=getOrderFields(row);if(!x.rider.name&&!x.rider.id)return;
+  let key=x.rider.id||norm(x.rider.name);if(chosen&&!chosen.has(key))return;
+  if(!map.has(key))map.set(key,{id:x.rider.id,name:x.rider.name,count:0,amount:0,other:0,grave:0});
+  let o=map.get(key);o.count++;o.amount+=x.amount;o.other+=x.other;o.grave+=x.grave;
+ });
+ let rate=Number($('fuelRate').value)||0;
+ fuelOutput=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>({...x,total:x.amount+x.other+x.grave+rate*x.count}));
+ renderTable('fuelTable',['ID','Name','No. of Order','Order Amount','Other amount','Grave yard order amount','Total Amount'],
+ fuelOutput.map(x=>[x.id,x.name,x.count,money(x.amount),money(x.other),money(x.grave),money(x.total)]));
+ $('fuelSummary').innerHTML=`<div class="kpi">Riders<b>${fuelOutput.length}</b></div><div class="kpi">Orders<b>${fuelOutput.reduce((s,x)=>s+x.count,0)}</b></div><div class="kpi">Fuel Total<b>Rs. ${money(fuelOutput.reduce((s,x)=>s+x.count*rate,0))}</b></div>`;
+}
+function selectAllAreas(v){$('areaList').querySelectorAll('input').forEach(x=>x.checked=v)}
+function generateRadiusReport(){
+ if(!orderRows.length||!areaRows.length&&areas.length===0){alert('Load both Order List and Area Efficiency Report first.');return}
+ let selected=[...$('areaList').querySelectorAll('input:checked')].map(x=>areas[Number(x.value)].name);
+ if(!selected.length){alert('Select at least one area.');return}
+ // Area report is expected to contain order-level rows with Order No + Area.
+ let areaFile=$('areaFile').files[0];
+ readWorkbook(areaFile).then(wb=>{
+   let rows=sheetObjects(wb);
+   let areaKey=rows.length?findKey(rows[0],['area']):null;
+   let noKey=rows.length?findKey(rows[0],['orderno','billno','ordernumber','order number']):null;
+   if(!areaKey||!noKey){
+     let ws=wb.Sheets[wb.SheetNames[0]], matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+     let hi=matrix.findIndex(r=>r.some(x=>norm(x)==='area')&&r.some(x=>['orderno','billno','ordernumber'].includes(norm(x))));
+     if(hi>=0){let h=matrix[hi];rows=matrix.slice(hi+1).map(a=>Object.fromEntries(h.map((x,i)=>[x,a[i]??''])));areaKey=findKey(rows[0]||{},['area']);noKey=findKey(rows[0]||{},['orderno','billno','ordernumber','order number']);}
+   }
+   if(!areaKey||!noKey){alert('The selected Area file must contain both Area and Order Number columns.');return}
+   let selectedNorm=new Set(selected.map(norm));
+   let wanted=new Map();
+   rows.forEach(r=>{let a=clean(r[areaKey]),n=orderNumber(r[noKey]);if(selectedNorm.has(norm(a))&&n)wanted.set(n,a)});
+   let riderKey=findKey(orderRows[0],['rider','deliveryrider','ridername']);
+   let billKey=findKey(orderRows[0],['billno','orderno','ordernumber','order number']);
+   if(!riderKey||!billKey){alert('Order List must contain Rider and BillNo/Order No columns.');return}
+   let map=new Map(),matched=0;
+   orderRows.forEach(r=>{
+     let n=orderNumber(r[billKey]);if(!wanted.has(n))return;
+     let p=parseRider(r[riderKey]);let key=p.id||norm(p.name);if(!key)return;
+     matched++;
+     if(!map.has(key))map.set(key,{id:p.id,name:p.name,areas:new Set(),count:0});
+     let o=map.get(key);o.areas.add(wanted.get(n));o.count++;
+   });
+   radiusOutput=[...map.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(x=>[x.id,x.name,[...x.areas].join(', '),x.count]);
+   renderTable('radiusTable',['Rider ID','Rider Name','Selected Area(s)','No. of Orders'],radiusOutput);
+   $('radiusSummary').innerHTML=`<div class="kpi">Riders<b>${radiusOutput.length}</b></div><div class="kpi">Matched Orders<b>${matched}</b></div><div class="kpi">Selected Areas<b>${selected.length}</b></div>`;
+ }).catch(e=>alert('Could not process Area Report: '+e.message));
+}
+function renderTable(id,headers,rows){
+ let t=$(id);t.querySelector('thead').innerHTML='<tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr>';
+ t.querySelector('tbody').innerHTML=rows.length?rows.map(r=>'<tr>'+r.map(v=>'<td>'+String(v??'').replace(/</g,'&lt;')+'</td>').join('')+'</tr>').join(''):'<tr><td colspan="'+headers.length+'">No results</td></tr>';
+}
+function downloadCSV(tableId,name){
+ let t=$(tableId);if(!t.querySelector('tbody').children.length){alert('Generate the report first.');return}
+ let rows=[...t.querySelectorAll('tr')].map(tr=>[...tr.children].map(td=>'"'+td.innerText.replace(/"/g,'""')+'"').join(',')).join('\n');
+ let blob=new Blob([rows],{type:'text/csv;charset=utf-8;'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
